@@ -5,7 +5,8 @@ import DisplayScreen from './DisplayScreen';
 import { 
   Plus, Trash2, Edit2, Settings, Users, FileText, Play, Image, 
   Globe, LogOut, ArrowUp, ArrowDown, RefreshCw, UserPlus, 
-  Clock, CloudSun, Layout, Save, Eye, ClipboardList, CheckCircle2, AlertTriangle
+  Clock, CloudSun, Layout, Save, Eye, ClipboardList, CheckCircle2, AlertTriangle,
+  Sun, Moon
 } from 'lucide-react';
 
 const Youtube = ({ size = 16, style, ...props }) => (
@@ -40,6 +41,19 @@ const SAUDI_CITIES = [
 ];
 
 export default function Dashboard({ currentUser, onLogout }) {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('dashboard_theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('dashboard_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   const [activeTab, setActiveTab] = useState('playlist'); // playlist, ticker, users, logs, settings
   const [playlist, setPlaylist] = useState([]);
   const [tickerItems, setTickerItems] = useState([]);
@@ -546,6 +560,14 @@ export default function Dashboard({ currentUser, onLogout }) {
         </div>
         
         <div className="header-actions">
+          <button 
+            onClick={toggleTheme} 
+            className="btn-theme-toggle" 
+            title={theme === 'dark' ? 'الوضع المضيء' : 'الوضع المظلم'}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
           <div className="user-profile">
             <span className="user-avatar">{currentUser.username[0].toUpperCase()}</span>
             <div className="user-info">
@@ -614,6 +636,51 @@ export default function Dashboard({ currentUser, onLogout }) {
               <span>{notification.text}</span>
             </div>
           )}
+
+          {/* Quick Statistics Grid */}
+          <div className="dashboard-stats-grid">
+            <div className="stat-card glass-card">
+              <div className="stat-icon-wrapper playlist-stat">
+                <Play size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">عناصر البث</span>
+                <span className="stat-value">{playlist.length}</span>
+              </div>
+            </div>
+            
+            <div className="stat-card glass-card">
+              <div className="stat-icon-wrapper weather-stat">
+                <CloudSun size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">مدينة الطقس</span>
+                <span className="stat-value">
+                  {SAUDI_CITIES.find(c => c.code === settings.weatherCity)?.name || 'الرياض'}
+                </span>
+              </div>
+            </div>
+
+            <div className="stat-card glass-card">
+              <div className="stat-icon-wrapper speed-stat">
+                <RefreshCw size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">سرعة الشريط</span>
+                <span className="stat-value">{settings.tickerSpeed || 15} ثانية</span>
+              </div>
+            </div>
+
+            <div className="stat-card glass-card">
+              <div className="stat-icon-wrapper logs-stat">
+                <FileText size={20} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-label">سجل العمليات</span>
+                <span className="stat-value">{logs.length} سجل</span>
+              </div>
+            </div>
+          </div>
 
           {/* Navigation Tabs */}
           <nav className="workspace-tabs glass-card">
