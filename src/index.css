@@ -1632,16 +1632,80 @@ body, .glass-card, .form-control, .btn-secondary, .workspace-tabs button, .custo
 /* DISPLAY SCREEN HEADER WIDGETS LAYOUT     */
 /* ----------------------------------------- */
 
-.display-widgets-area {
-  display: flex;
-  align-items: center;
-  gap: 50px;
+.display-station-name-single {
+  font-size: 22px;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--text-primary);
+  text-shadow: 0 0 10px rgba(255,255,255,0.2);
 }
 
-.header-vertical-separator {
-  width: 2px;
-  height: 100px;
-  background: linear-gradient(to bottom, transparent, rgba(235, 97, 35, 0.4), transparent);
-  box-shadow: 0 0 10px rgba(235, 97, 35, 0.3);
+.display-widgets-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  padding-left: 10px;
+}
+
+.display-weather-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.weather-meta-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.weather-temp-small {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(to right, #fff, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.weather-city-small {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.weather-icon-box-small {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.display-clock-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.display-time-small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--primary);
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+.display-date-small {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 

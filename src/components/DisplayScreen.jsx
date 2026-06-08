@@ -343,7 +343,7 @@ export default function DisplayScreen({ isPreview = false }) {
     <div className={`display-screen-container ${rotationClass} ${isPreview ? 'in-preview' : ''}`}>
       {/* Top Banner (Header) */}
       <header className="display-header glass-element">
-        {/* Right Side: Brand Logo & Title */}
+        {/* Right Side: Brand Logo & Title (Single Line) */}
         <div className="display-logo-area">
           {settings.stationLogo ? (
             <img src={settings.stationLogo} alt="Logo" className="display-logo-img" />
@@ -354,34 +354,31 @@ export default function DisplayScreen({ isPreview = false }) {
               className="display-logo-img" 
             />
           )}
-          <h1 className="display-station-name">
-            {renderStationName(settings.stationName)}
+          <h1 className="display-station-name-single">
+            {settings.stationName || 'شركة هلا السعودية للخدمات البترولية'}
           </h1>
         </div>
 
-        {/* Left Side: Dynamic Info Widgets (Clock & Weather) */}
-        <div className="display-widgets-area">
-          {/* Weather Widget */}
-          <div className="display-weather-area">
-            <div className="weather-icon-box">
-              <WeatherIcon size={72} className="weather-glow" />
+        {/* Left Side: Dynamic Info Widgets Stacked (Weather on top, Clock underneath) */}
+        <div className="display-widgets-stack">
+          {/* Weather Widget (Top Left) */}
+          <div className="display-weather-row">
+            <div className="weather-meta-row">
+              <span className="weather-temp-small">{weather.temp}</span>
+              <span className="weather-city-small">{weather.text}</span>
             </div>
-            <div className="weather-meta">
-              <span className="weather-temp">{weather.temp}</span>
-              <span className="weather-city">{weather.text}</span>
+            <div className="weather-icon-box-small">
+              <WeatherIcon size={44} className="weather-glow" />
             </div>
           </div>
 
-          {/* Vertical Separator */}
-          <div className="header-vertical-separator"></div>
-
-          {/* Clock Widget */}
-          <div className="display-clock-area">
-            <div className="display-time">
-              <Clock size={48} className="clock-pulse" />
+          {/* Clock Widget (Bottom Left, Under Weather) */}
+          <div className="display-clock-row">
+            <div className="display-time-small">
+              <Clock size={32} className="clock-pulse" />
               <span>{currentTime}</span>
             </div>
-            <div className="display-date">{currentDate}</div>
+            <div className="display-date-small">{currentDate}</div>
           </div>
         </div>
       </header>
