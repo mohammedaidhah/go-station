@@ -343,35 +343,45 @@ export default function DisplayScreen({ isPreview = false }) {
     <div className={`display-screen-container ${rotationClass} ${isPreview ? 'in-preview' : ''}`}>
       {/* Top Banner (Header) */}
       <header className="display-header glass-element">
-        {/* Left Side: Brand Logo & Title */}
+        {/* Right Side: Brand Logo & Title */}
         <div className="display-logo-area">
           {settings.stationLogo ? (
             <img src={settings.stationLogo} alt="Logo" className="display-logo-img" />
           ) : (
-            <div className="display-logo-placeholder">Go</div>
+            <img 
+              src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" 
+              alt="Logo" 
+              className="display-logo-img" 
+            />
           )}
           <h1 className="display-station-name">
             {renderStationName(settings.stationName)}
           </h1>
         </div>
 
-        {/* Center: Clock & Date */}
-        <div className="display-clock-area">
-          <div className="display-time">
-            <Clock size={48} className="clock-pulse" />
-            <span>{currentTime}</span>
+        {/* Left Side: Dynamic Info Widgets (Clock & Weather) */}
+        <div className="display-widgets-area">
+          {/* Weather Widget */}
+          <div className="display-weather-area">
+            <div className="weather-icon-box">
+              <WeatherIcon size={72} className="weather-glow" />
+            </div>
+            <div className="weather-meta">
+              <span className="weather-temp">{weather.temp}</span>
+              <span className="weather-city">{weather.text}</span>
+            </div>
           </div>
-          <div className="display-date">{currentDate}</div>
-        </div>
 
-        {/* Right Side: Weather Widget */}
-        <div className="display-weather-area">
-          <div className="weather-meta">
-            <span className="weather-temp">{weather.temp}</span>
-            <span className="weather-city">{weather.text}</span>
-          </div>
-          <div className="weather-icon-box">
-            <WeatherIcon size={72} className="weather-glow" />
+          {/* Vertical Separator */}
+          <div className="header-vertical-separator"></div>
+
+          {/* Clock Widget */}
+          <div className="display-clock-area">
+            <div className="display-time">
+              <Clock size={48} className="clock-pulse" />
+              <span>{currentTime}</span>
+            </div>
+            <div className="display-date">{currentDate}</div>
           </div>
         </div>
       </header>

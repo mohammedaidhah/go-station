@@ -1135,11 +1135,11 @@ textarea.form-control {
 }
 
 .display-logo-img {
-  height: 180px;
-  width: 180px;
+  height: 120px;
+  width: auto;
+  max-width: 320px;
   object-fit: contain;
-  border-radius: 24px;
-  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
 }
 
 .display-logo-placeholder {
@@ -1625,5 +1625,23 @@ textarea.form-control {
 /* Smooth theme transition */
 body, .glass-card, .form-control, .btn-secondary, .workspace-tabs button, .custom-table tbody tr {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+/* ----------------------------------------- */
+/* DISPLAY SCREEN HEADER WIDGETS LAYOUT     */
+/* ----------------------------------------- */
+
+.display-widgets-area {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.header-vertical-separator {
+  width: 2px;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, rgba(235, 97, 35, 0.4), transparent);
+  box-shadow: 0 0 10px rgba(235, 97, 35, 0.3);
 }
 
