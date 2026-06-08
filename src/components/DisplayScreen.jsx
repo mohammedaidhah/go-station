@@ -355,7 +355,7 @@ export default function DisplayScreen({ isPreview = false }) {
             />
           )}
           <h1 className="display-station-name-single">
-            {settings.stationName || 'شركة هلا السعودية للخدمات البترولية'}
+            {(!settings.stationName || settings.stationName === 'محطة جو ستيشن الرقمية') ? 'شركة هلا السعودية للخدمات البترولية' : settings.stationName}
           </h1>
         </div>
 
@@ -469,7 +469,7 @@ export default function DisplayScreen({ isPreview = false }) {
 
       {/* Bottom Ticker Tape */}
       <footer className="display-ticker-footer glass-element">
-        <div className="ticker-label">تنبيهات هامة</div>
+        <div className="ticker-label">الحدث اليومي</div>
         <div className="ticker-scroll-container">
           <div 
             className="ticker-marquee-text"

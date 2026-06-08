@@ -74,7 +74,7 @@ async function initializeDefaultData(db) {
 
   // Add default settings
   const defaultSettings = [
-    { key: 'stationName', value: 'محطة جو ستيشن الرقمية' },
+    { key: 'stationName', value: 'شركة هلا السعودية للخدمات البترولية' },
     { key: 'stationLogo', value: null }, // Base64 or Object URL
     { key: 'weatherCity', value: 'Riyadh' }, // City for weather
     { key: 'tickerSpeed', value: 15 }, // seconds for full scroll
