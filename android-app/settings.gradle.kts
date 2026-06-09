@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "GoStationSignage"
-include ':app'
+include(":app")
