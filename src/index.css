@@ -1470,14 +1470,18 @@ textarea.form-control {
 }
 
 .ticker-marquee-text {
-  display: inline-block;
+  display: flex;
   white-space: nowrap;
   font-size: 24px;
   font-weight: 700;
   color: #ffffff;
   animation: marquee-ltr 25s linear infinite;
-  padding-right: 100%; /* start scrolling from far left */
   direction: rtl; /* keep Arabic text reading from right to left */
+  width: max-content;
+}
+
+.ticker-marquee-text span {
+  padding-right: 60px; /* spacing between repeat blocks */
 }
 
 .footer-dark-layer {
@@ -1497,8 +1501,8 @@ textarea.form-control {
 }
 
 @keyframes marquee-ltr {
-  0% { transform: translate3d(-100%, 0, 0); }
-  100% { transform: translate3d(100%, 0, 0); }
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0%, 0, 0); }
 }
 
 

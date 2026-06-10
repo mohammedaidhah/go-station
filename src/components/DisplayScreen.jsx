@@ -260,8 +260,26 @@ export default function DisplayScreen({ isPreview = false }) {
       
       // Handle local video autoplay
       if (currentItem.type === 'video' && videoRef.current) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(e => console.log('Video autoplay blocked:', e));
+        const video = videoRef.current;
+        video.muted = true;
+        video.defaultMuted = true;
+        video.currentTime = 0;
+        video.load(); // Force browser to load the new video file source
+        
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => {
+            console.log('Video autoplay blocked, trying play on interaction:', e);
+            // Fallback play on interaction
+            const playOnTouch = () => {
+              video.play().catch(err => console.log('Interactive play failed:', err));
+              document.removeEventListener('click', playOnTouch);
+              document.removeEventListener('touchstart', playOnTouch);
+            };
+            document.addEventListener('click', playOnTouch);
+            document.addEventListener('touchstart', playOnTouch);
+          });
+        }
       }
     }
   }, [playlist, currentIndex]);
@@ -496,12 +514,20 @@ export default function DisplayScreen({ isPreview = false }) {
     }
   };
 
+  const handleLoadedMetadata = (e) => {
+    const videoDuration = Math.ceil(e.target.duration);
+    if (videoDuration && videoDuration > 0) {
+      durationTotalRef.current = videoDuration;
+      setTimeRemaining(videoDuration);
+    }
+  };
+
   // Helper to compile ticker messages
   const getTickerText = () => {
     if (tickerItems.length === 0) {
-      return 'أهلاً بكم في مقر قوستيشن الرئيسي - يسعدنا أن نقدم لكم أفضل الخدمات البترولية المتكاملة...';
+      return 'أهلاً بكم في مقر قوستيشن الرئيسي - يسعدنا أن نقدم لكم أفضل الخدمات البترولية المتكاملة...   |   🚀   |   ';
     }
-    return tickerItems.map(item => item.text).join('   |   🚀   |   ');
+    return tickerItems.map(item => item.text).join('   |   🚀   |   ') + '   |   🚀   |   ';
   };
 
   const currentItem = playlist[currentIndex];
@@ -607,6 +633,7 @@ export default function DisplayScreen({ isPreview = false }) {
                   autoPlay
                   muted
                   playsInline
+                  onLoadedMetadata={handleLoadedMetadata}
                   onEnded={handleVideoEnded}
                   className="media-fit-cover"
                 />
@@ -650,7 +677,8 @@ export default function DisplayScreen({ isPreview = false }) {
                 animationDuration: `${settings.tickerSpeed || 15}s` 
               }}
             >
-              {getTickerText()}
+              <span>{getTickerText()}</span>
+              <span>{getTickerText()}</span>
             </div>
           </div>
         </div>
