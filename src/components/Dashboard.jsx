@@ -106,7 +106,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   const updatePreviewScale = () => {
     if (!previewWrapperRef.current) return;
     const wrapperWidth = previewWrapperRef.current.offsetWidth || 320;
-    const isRotated = layoutRotation === '90';
+    const isRotated = layoutRotation === '90' || layoutRotation === '270';
     const logicalWidth = isRotated ? 720 : 1280;
     const logicalHeight = isRotated ? 1280 : 720;
     const scale = wrapperWidth / logicalWidth;
@@ -623,8 +623,8 @@ export default function Dashboard({ currentUser, onLogout }) {
             <div 
               className="preview-viewport" 
               style={{
-                width: layoutRotation === '90' ? '720px' : '1280px',
-                height: layoutRotation === '90' ? '1280px' : '720px',
+                width: (layoutRotation === '90' || layoutRotation === '270') ? '720px' : '1280px',
+                height: (layoutRotation === '90' || layoutRotation === '270') ? '1280px' : '720px',
                 transform: `scale(${previewScale})`,
                 position: 'absolute',
                 top: 0,
@@ -1351,8 +1351,10 @@ export default function Dashboard({ currentUser, onLogout }) {
                       >
                         <option value="0">شاشة عرضية (أفقية 0°)</option>
                         <option value="90">شاشة طولية إعلانية (عمودية 90°)</option>
+                        <option value="180">شاشة عرضية مقلوبة (أفقية 180°)</option>
+                        <option value="270">شاشة طولية مقلوبة (عمودية 270°)</option>
                       </select>
-                      <small className="help-text">عند تفعيل تدوير 90 درجة، سيتم قلب المحتوى عمودياً ليلائم الشاشات الطولية.</small>
+                      <small className="help-text">عند اختيار الدوران، سيتم قلب وتوجيه المحتوى ليتطابق مع اتجاه الشاشة الفيزيائي.</small>
                     </div>
 
                     <div className="form-group flex-1">

@@ -3,8 +3,27 @@ import { db } from '../utils/db';
 import { sync } from '../utils/sync';
 import { 
   Sun, Cloud, CloudSun, CloudRain, CloudSnow, CloudLightning, 
-  Wind, Clock, HelpCircle, Loader2, AlertCircle, Maximize2 
+  Wind, Clock, HelpCircle, Loader2, AlertCircle, Maximize2,
+  Play
 } from 'lucide-react';
+
+const Youtube = ({ size = 16, style, ...props }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    fill="none" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}
+    {...props}
+  >
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor" />
+  </svg>
+);
 
 // Custom Colored Weather SVG Icons matching the mockup design
 const ColoredSun = ({ size = 28 }) => (
@@ -532,7 +551,7 @@ export default function DisplayScreen({ isPreview = false }) {
 
   const currentItem = playlist[currentIndex];
   const WeatherIcon = weather.Icon;
-  const rotationClass = settings.layoutRotation === '90' ? 'display-rotated-90' : '';
+  const rotationClass = settings.layoutRotation ? `display-rotated-${settings.layoutRotation}` : '';
 
   return (
     <div className={`display-screen-container ${rotationClass} ${isPreview ? 'in-preview' : ''}`}>
@@ -642,12 +661,28 @@ export default function DisplayScreen({ isPreview = false }) {
 
             {currentItem.type === 'youtube' && (
               <div className="media-frame youtube-frame">
-                <iframe
-                  src={`https://www.youtube.com/embed/${getYouTubeId(currentItem.url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${getYouTubeId(currentItem.url)}&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&modestbranding=1`}
-                  title={currentItem.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  className="youtube-iframe"
-                />
+                {isPreview ? (
+                  <div className="youtube-preview-fallback">
+                    <img 
+                      src={`https://img.youtube.com/vi/${getYouTubeId(currentItem.url)}/maxresdefault.jpg`} 
+                      alt={currentItem.title}
+                      className="media-fit-cover"
+                      onError={(e) => {
+                        e.target.src = `https://img.youtube.com/vi/${getYouTubeId(currentItem.url)}/hqdefault.jpg`;
+                      }}
+                    />
+                    <div className="youtube-play-overlay">
+                      <Youtube size={48} className="youtube-icon-preview" />
+                    </div>
+                  </div>
+                ) : (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${getYouTubeId(currentItem.url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${getYouTubeId(currentItem.url)}&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&modestbranding=1`}
+                    title={currentItem.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    className="youtube-iframe"
+                  />
+                )}
               </div>
             )}
 
@@ -674,7 +709,7 @@ export default function DisplayScreen({ isPreview = false }) {
             <div 
               className="ticker-marquee-text"
               style={{ 
-                animationDuration: `${settings.tickerSpeed || 15}s` 
+                animationDuration: `${parseInt(settings.tickerSpeed) || 15}s` 
               }}
             >
               <span>{getTickerText()}</span>

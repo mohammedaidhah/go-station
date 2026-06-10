@@ -1105,6 +1105,30 @@ textarea.form-control {
   z-index: 9999;
 }
 
+/* Rotation styling for digital landscape signage (180 deg software turn) */
+.display-screen-container.display-rotated-180:not(.in-preview) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100vh;
+  transform: translate(-50%, -50%) rotate(180deg);
+  transform-origin: center;
+  z-index: 9999;
+}
+
+/* Rotation styling for digital vertical signage (270 deg software turn) */
+.display-screen-container.display-rotated-270:not(.in-preview) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 100vh; /* viewport height becomes width */
+  height: 100vw; /* viewport width becomes height */
+  transform: translate(-50%, -50%) rotate(270deg);
+  transform-origin: center;
+  z-index: 9999;
+}
+
 /* Glass element style for Display overlay pieces */
 .glass-element {
   background: rgba(8, 7, 18, 0.78);
@@ -1346,6 +1370,52 @@ textarea.form-control {
   pointer-events: none;
 }
 
+/* YouTube Preview Fallback for Dashboard scaled viewport */
+.youtube-preview-fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.youtube-preview-fallback img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.youtube-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(235, 97, 35, 0.85); /* Brand orange background */
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 25px rgba(235, 97, 35, 0.6);
+  transition: all 0.25s ease;
+}
+
+.youtube-preview-fallback:hover .youtube-play-overlay {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: #eb6123;
+  box-shadow: 0 0 35px rgba(235, 97, 35, 0.9);
+}
+
+.youtube-icon-preview {
+  color: #ffffff;
+}
+
 /* Floating overlay title */
 .display-item-overlay-title {
   position: absolute;
@@ -1476,11 +1546,13 @@ textarea.form-control {
   font-weight: 700;
   color: #ffffff;
   animation: marquee-ltr 25s linear infinite;
-  direction: rtl; /* keep Arabic text reading from right to left */
+  direction: ltr; /* standard LTR container layout */
   width: max-content;
 }
 
 .ticker-marquee-text span {
+  display: inline-block;
+  direction: rtl; /* correct Arabic rendering direction */
   padding-right: 60px; /* spacing between repeat blocks */
 }
 
@@ -1799,8 +1871,9 @@ body, .glass-card, .form-control, .btn-secondary, .workspace-tabs button, .custo
   }
 }
 
-/* Apply the same stacked layout when using the 90deg software rotation setting */
-.display-rotated-90 .display-header {
+/* Apply the same stacked layout when using the 90deg or 270deg software rotation settings */
+.display-rotated-90 .display-header,
+.display-rotated-270 .display-header {
   flex-direction: column;
   height: auto;
   padding: 30px 20px;
@@ -1809,36 +1882,42 @@ body, .glass-card, .form-control, .btn-secondary, .workspace-tabs button, .custo
   text-align: center;
 }
 
-.display-rotated-90 .display-logo-area {
+.display-rotated-90 .display-logo-area,
+.display-rotated-270 .display-logo-area {
   flex-direction: column;
   align-items: center;
   gap: 12px;
 }
 
-.display-rotated-90 .display-logo-img {
+.display-rotated-90 .display-logo-img,
+.display-rotated-270 .display-logo-img {
   height: 90px;
   max-width: 260px;
 }
 
-.display-rotated-90 .display-station-name-single {
+.display-rotated-90 .display-station-name-single,
+.display-rotated-270 .display-station-name-single {
   font-size: 20px;
   white-space: normal;
   text-align: center;
   line-height: 1.4;
 }
 
-.display-rotated-90 .display-widgets-stack {
+.display-rotated-90 .display-widgets-stack,
+.display-rotated-270 .display-widgets-stack {
   align-items: center;
   padding-left: 0;
   gap: 12px;
   width: 100%;
 }
 
-.display-rotated-90 .display-weather-row {
+.display-rotated-90 .display-weather-row,
+.display-rotated-270 .display-weather-row {
   justify-content: center;
 }
 
-.display-rotated-90 .display-clock-row {
+.display-rotated-90 .display-clock-row,
+.display-rotated-270 .display-clock-row {
   align-items: center;
 }
 
