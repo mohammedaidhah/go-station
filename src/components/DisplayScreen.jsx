@@ -686,9 +686,6 @@ export default function DisplayScreen({ isPreview = false }) {
                     <div className="youtube-play-overlay">
                       <Youtube size={48} className="youtube-icon-preview" />
                     </div>
-                    <div className="youtube-title-overlay">
-                      <span>{currentItem.title}</span>
-                    </div>
                   </div>
                 ) : (
                   <iframe
