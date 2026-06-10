@@ -1144,9 +1144,9 @@ textarea.form-control {
 }
 
 .display-logo-img {
-  height: 140px;
+  height: 175px;
   width: auto;
-  max-width: 320px;
+  max-width: 380px;
   object-fit: contain;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
 }
@@ -1475,23 +1475,24 @@ textarea.form-control {
   font-size: 24px;
   font-weight: 700;
   color: #ffffff;
-  animation: marquee-rtl 25s linear infinite;
-  padding-left: 100%; /* start scrolling from far right */
+  animation: marquee-ltr 25s linear infinite;
+  padding-right: 100%; /* start scrolling from far left */
+  direction: rtl; /* keep Arabic text reading from right to left */
 }
 
 .footer-dark-layer {
-  background: #0d0c1d;
+  background: #ab3d0c; /* Dark orange background matching the mockup */
   height: 42px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-brand-prefix {
-  color: #eb6123;
+  color: #ffffff; /* White bracket */
   font-size: 20px;
   font-weight: 800;
 }
@@ -1500,6 +1501,7 @@ textarea.form-control {
   height: 20px;
   width: auto;
   object-fit: contain;
+  filter: brightness(0) invert(1); /* Ensure it's purely white */
 }
 
 .footer-brand-text {
@@ -1508,12 +1510,12 @@ textarea.form-control {
   font-weight: 500;
   letter-spacing: 1.5px;
   text-transform: lowercase;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
-@keyframes marquee-rtl {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-100%, 0, 0); }
+@keyframes marquee-ltr {
+  0% { transform: translate3d(-100%, 0, 0); }
+  100% { transform: translate3d(100%, 0, 0); }
 }
 
 
