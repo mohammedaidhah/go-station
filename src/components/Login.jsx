@@ -24,7 +24,7 @@ export default function Login({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error(err);
-      setError('حدث خطأ أثناء الاتصال بقاعدة البيانات');
+      setError(`حدث خطأ أثناء الاتصال بقاعدة البيانات: ${err.message || 'يرجى التحقق من إعدادات Vercel والشبكة'}`);
     } finally {
       setIsLoading(false);
     }
