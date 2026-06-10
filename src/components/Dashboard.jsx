@@ -67,6 +67,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [fileBase64, setFileBase64] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [duration, setDuration] = useState(10); // in seconds
   const [scheduleType, setScheduleType] = useState('always'); // always, scheduled
   const [startDateTime, setStartDateTime] = useState('');
@@ -92,6 +93,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [tickerSpeed, setTickerSpeed] = useState(15);
   const [layoutRotation, setLayoutRotation] = useState('90');
   const [stationLogo, setStationLogo] = useState(null);
+  const [selectedLogoFile, setSelectedLogoFile] = useState(null);
   
   // Global message notifications
   const [notification, setNotification] = useState(null);
@@ -191,9 +193,10 @@ export default function Dashboard({ currentUser, onLogout }) {
       return;
     }
 
+    setSelectedFile(file); // Save File object for cloud upload
     const reader = new FileReader();
     reader.onload = () => {
-      setFileBase64(reader.result);
+      setFileBase64(reader.result); // Keeps preview URL working
       if (!title) {
         setTitle(file.name.substring(0, file.name.lastIndexOf('.')) || file.name);
       }
@@ -223,6 +226,12 @@ export default function Dashboard({ currentUser, onLogout }) {
     }
 
     try {
+      let finalUrl = url;
+      if ((mediaType === 'image' || mediaType === 'video') && selectedFile) {
+        showNotification('جاري رفع الملف السحابي...', 'info');
+        finalUrl = await db.uploadMedia(selectedFile);
+      }
+
       const itemData = {
         type: mediaType,
         title: title || 'عنصر عرض جديد',
@@ -251,7 +260,7 @@ export default function Dashboard({ currentUser, onLogout }) {
         itemData.order = originalItem.order;
 
         if (mediaType === 'image' || mediaType === 'video') {
-          itemData.url = fileBase64 ? fileBase64 : originalItem.url;
+          itemData.url = selectedFile ? finalUrl : originalItem.url;
         } else {
           itemData.url = url;
         }
@@ -262,7 +271,7 @@ export default function Dashboard({ currentUser, onLogout }) {
       } else {
         itemData.createdAt = new Date().toISOString();
         if (mediaType === 'image' || mediaType === 'video') {
-          itemData.url = fileBase64;
+          itemData.url = finalUrl;
         } else {
           itemData.url = url;
         }
@@ -286,6 +295,7 @@ export default function Dashboard({ currentUser, onLogout }) {
     setTitle('');
     setUrl('');
     setFileBase64('');
+    setSelectedFile(null); // Reset file selection state
     setDuration(10);
     setScheduleType('always');
     setStartDateTime('');
@@ -458,14 +468,21 @@ export default function Dashboard({ currentUser, onLogout }) {
     }
 
     try {
+      let finalLogoUrl = stationLogo;
+      if (selectedLogoFile) {
+        showNotification('جاري رفع شعار المحطة سحابياً...', 'info');
+        finalLogoUrl = await db.uploadMedia(selectedLogoFile);
+      }
+
       await db.saveSetting('stationName', stationName);
       await db.saveSetting('weatherCity', weatherCity);
       await db.saveSetting('tickerSpeed', parseInt(tickerSpeed));
       await db.saveSetting('layoutRotation', layoutRotation);
-      await db.saveSetting('stationLogo', stationLogo);
+      await db.saveSetting('stationLogo', finalLogoUrl);
 
       await db.addLog(currentUser.username, currentUser.role, 'SETTINGS', 'SETTINGS', 'تحديث الإعدادات العامة للنظام');
       showNotification('تم حفظ الإعدادات بنجاح');
+      setSelectedLogoFile(null); // Reset logo file state
       loadData();
       syncContent();
     } catch (err) {
@@ -477,6 +494,8 @@ export default function Dashboard({ currentUser, onLogout }) {
   const handleLogoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setSelectedLogoFile(file); // Save logo file for cloud upload
 
     const reader = new FileReader();
     reader.onload = () => {
