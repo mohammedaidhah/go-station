@@ -1481,36 +1481,19 @@ textarea.form-control {
 }
 
 .footer-dark-layer {
-  background: #ab3d0c; /* Dark orange background matching the mockup */
+  background: #eb6123; /* Bright orange background matching the marquee and the mockup */
   height: 42px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.footer-brand-prefix {
-  color: #ffffff; /* White bracket */
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.footer-mini-logo {
-  height: 20px;
+.footer-brand-image {
+  height: 28px; /* Perfectly sized to fit the 42px footer height */
   width: auto;
   object-fit: contain;
-  filter: brightness(0) invert(1); /* Ensure it's purely white */
-}
-
-.footer-brand-text {
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 1.5px;
-  text-transform: lowercase;
-  opacity: 0.95;
 }
 
 @keyframes marquee-ltr {

@@ -657,13 +657,11 @@ export default function DisplayScreen({ isPreview = false }) {
         
         {/* Bottom layer: Dark Brand Bar */}
         <div className="footer-dark-layer">
-          <span className="footer-brand-prefix">&gt;</span>
           <img 
-            src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" 
-            alt="Go Station Logo" 
-            className="footer-mini-logo"
+            src="https://soalxwyddhpoczasyxfa.supabase.co/storage/v1/object/public/media/footer_brand_logo_1781091768165.png" 
+            alt="GO. station and more ." 
+            className="footer-brand-image"
           />
-          <span className="footer-brand-text">station and more .</span>
         </div>
       </footer>
     </div>
