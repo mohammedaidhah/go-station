@@ -482,13 +482,7 @@ export default function DisplayScreen({ isPreview = false }) {
         </div>
       </footer>
 
-      {/* Floating Fullscreen Toggle Button - hidden inside preview or if already in Fullscreen */}
-      {!isPreview && !isFullscreen && (
-        <button onClick={toggleFullscreen} className="btn-fullscreen-toggle" title="ملء الشاشة">
-          <Maximize2 size={16} />
-          <span>ملء الشاشة</span>
-        </button>
-      )}
+
     </div>
   );
 }

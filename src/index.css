@@ -1447,6 +1447,7 @@ textarea.form-control {
   height: 100%;
   display: flex;
   align-items: center;
+  direction: ltr; /* Set container direction to LTR */
 }
 
 .ticker-marquee-text {
@@ -1454,14 +1455,15 @@ textarea.form-control {
   white-space: nowrap;
   font-size: 22px;
   font-weight: 600;
-  padding-left: 100%; /* Start scrolling from far right */
-  animation: marquee 15s linear infinite;
+  padding-right: 100%; /* Start scrolling from far left */
+  animation: marquee-ltr 15s linear infinite;
   color: #f1f5f9;
+  direction: ltr; /* Set text direction to LTR */
 }
 
-@keyframes marquee {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-100%, 0, 0); }
+@keyframes marquee-ltr {
+  0% { transform: translate3d(-100%, 0, 0); }
+  100% { transform: translate3d(100%, 0, 0); }
 }
 
 
@@ -1707,5 +1709,97 @@ body, .glass-card, .form-control, .btn-secondary, .workspace-tabs button, .custo
   font-size: 14px;
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+/* ----------------------------------------- */
+/* PORTRAIT & ROTATED 90DEG SIGNAGE LAYOUTS  */
+/* ----------------------------------------- */
+
+/* Stack header elements vertically for a balanced vertical (portrait) view */
+@media (orientation: portrait) {
+  .display-header {
+    flex-direction: column;
+    height: auto;
+    padding: 30px 20px;
+    gap: 20px;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .display-logo-area {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .display-logo-img {
+    height: 90px;
+    max-width: 260px;
+  }
+  
+  .display-station-name-single {
+    font-size: 20px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.4;
+  }
+  
+  .display-widgets-stack {
+    align-items: center;
+    padding-left: 0;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .display-weather-row {
+    justify-content: center;
+  }
+
+  .display-clock-row {
+    align-items: center;
+  }
+}
+
+/* Apply the same stacked layout when using the 90deg software rotation setting */
+.display-rotated-90 .display-header {
+  flex-direction: column;
+  height: auto;
+  padding: 30px 20px;
+  gap: 20px;
+  justify-content: center;
+  text-align: center;
+}
+
+.display-rotated-90 .display-logo-area {
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.display-rotated-90 .display-logo-img {
+  height: 90px;
+  max-width: 260px;
+}
+
+.display-rotated-90 .display-station-name-single {
+  font-size: 20px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.display-rotated-90 .display-widgets-stack {
+  align-items: center;
+  padding-left: 0;
+  gap: 12px;
+  width: 100%;
+}
+
+.display-rotated-90 .display-weather-row {
+  justify-content: center;
+}
+
+.display-rotated-90 .display-clock-row {
+  align-items: center;
 }
 
