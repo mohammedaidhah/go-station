@@ -1,4 +1,5 @@
 // Database utility for Go Station using IndexedDB (for local caching & fallback) and Supabase (for cloud DB & storage).
+// Force redeploy to apply Vercel environment variables updates.
 // Supports offline fallback: if Supabase config is missing or network goes down, reads from local cache.
 import { createClient } from '@supabase/supabase-js';
 
