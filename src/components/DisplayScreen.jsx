@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../utils/db';
 import { sync } from '../utils/sync';
 import { 
-  Sun, Cloud, CloudRain, CloudSnow, CloudLightning, 
+  Sun, Cloud, CloudSun, CloudRain, CloudSnow, CloudLightning, 
   Wind, Clock, HelpCircle, Loader2, AlertCircle, Maximize2 
 } from 'lucide-react';
 
@@ -21,13 +21,13 @@ const CITIES_COORDINATES = {
 
 // Weather code formatter
 function getWeatherDetails(code) {
-  if (code === 0) return { text: 'مشمس صافٍ', Icon: Sun };
-  if ([1, 2, 3].includes(code)) return { text: 'غائم جزئياً', Icon: Cloud };
-  if ([45, 48].includes(code)) return { text: 'ضباب', Icon: Cloud };
-  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: 'أمطار حية', Icon: CloudRain };
-  if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: 'ثلوج', Icon: CloudSnow };
-  if ([95, 96, 99].includes(code)) return { text: 'عاصفة رعدية', Icon: CloudLightning };
-  return { text: 'معتدل', Icon: Sun };
+  if (code === 0) return { text: 'مشمس صافٍ', Icon: Sun, type: 'sunny' };
+  if ([1, 2, 3].includes(code)) return { text: 'غائم جزئياً', Icon: CloudSun, type: 'cloudy' };
+  if ([45, 48].includes(code)) return { text: 'ضباب', Icon: Cloud, type: 'foggy' };
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: 'أمطار', Icon: CloudRain, type: 'rainy' };
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: 'ثلوج', Icon: CloudSnow, type: 'snowy' };
+  if ([95, 96, 99].includes(code)) return { text: 'عاصفة رعدية', Icon: CloudLightning, type: 'stormy' };
+  return { text: 'معتدل', Icon: Sun, type: 'sunny' };
 }
 
 // Station name formatter
@@ -110,6 +110,7 @@ export default function DisplayScreen({ isPreview = false }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [weeklyForecast, setWeeklyForecast] = useState([]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -132,7 +133,7 @@ export default function DisplayScreen({ isPreview = false }) {
   };
   
   // Weather state
-  const [weather, setWeather] = useState({ temp: '--', text: 'جاري جلب الطقس...', Icon: Sun });
+  const [weather, setWeather] = useState({ temp: '--', text: 'جاري جلب الطقس...', Icon: Sun, type: 'sunny' });
   
   // Clock state
   const [currentTime, setCurrentTime] = useState('');
@@ -283,19 +284,38 @@ export default function DisplayScreen({ isPreview = false }) {
 
   const updateClock = () => {
     const now = new Date();
-    // Arabic formatted date
-    const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-    const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     
-    setCurrentTime(now.toLocaleTimeString('ar-SA', timeOptions));
-    setCurrentDate(now.toLocaleDateString('ar-SA', dateOptions));
+    // Arabic day name
+    const dayName = now.toLocaleDateString('ar-SA-u-nu-latn', { calendar: 'gregory', weekday: 'long' })
+      .replace('أ', 'ا')
+      .replace('إ', 'ا');
+      
+    // Arabic month name
+    const monthName = now.toLocaleDateString('ar-SA-u-nu-latn', { calendar: 'gregory', month: 'long' });
+    
+    // Day number
+    const dayNum = now.toLocaleDateString('ar-SA-u-nu-latn', { calendar: 'gregory', day: 'numeric' });
+    
+    // Year number
+    const yearNum = now.toLocaleDateString('ar-SA-u-nu-latn', { calendar: 'gregory', year: 'numeric' });
+    
+    const dateStr = `${dayName} - ${dayNum} ${monthName} ${yearNum} م`;
+    
+    // Format Time: HH:MM:SS in Latin digits
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${hrs}:${mins}:${secs}`;
+    
+    setCurrentTime(timeStr);
+    setCurrentDate(dateStr);
   };
 
   const fetchWeather = async (cityName) => {
     const coords = CITIES_COORDINATES[cityName] || CITIES_COORDINATES.Riyadh;
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`
+        `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&daily=weathercode&timezone=auto`
       );
       if (!res.ok) throw new Error('Weather fetch failed');
       const data = await res.json();
@@ -307,12 +327,82 @@ export default function DisplayScreen({ isPreview = false }) {
         setWeather({
           temp: `${temp}°`,
           text: `${coords.name} : ${details.text}`,
-          Icon: details.Icon
+          Icon: details.Icon,
+          type: details.type
         });
+      }
+
+      if (data && data.daily) {
+        const times = data.daily.time;
+        const codes = data.daily.weathercode;
+        
+        const ARABIC_WEEKDAYS = {
+          6: 'السبت',
+          0: 'الأحد',
+          1: 'الأثنين',
+          2: 'الثلاثاء',
+          3: 'الاربعاء',
+          4: 'الخميس',
+          5: 'الجمعة'
+        };
+
+        const DAY_ORDER = { 6: 0, 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
+        const todayString = new Date().toDateString();
+
+        const forecastDays = times.map((timeStr, idx) => {
+          const parts = timeStr.split('-');
+          const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          const dayOfWeek = dateObj.getDay();
+          const code = codes[idx];
+          const details = getWeatherDetails(code);
+          const isToday = dateObj.toDateString() === todayString;
+
+          return {
+            name: ARABIC_WEEKDAYS[dayOfWeek],
+            dayOfWeek,
+            Icon: details.Icon,
+            isToday
+          };
+        });
+
+        // Sort Saturday to Friday
+        forecastDays.sort((a, b) => DAY_ORDER[a.dayOfWeek] - DAY_ORDER[b.dayOfWeek]);
+        setWeeklyForecast(forecastDays);
       }
     } catch (err) {
       console.error('Error fetching weather:', err);
-      setWeather(prev => ({ ...prev, text: `${coords.name} : الطقس غير متاح` }));
+      setWeather(prev => ({ ...prev, text: `${coords.name} : الطقس غير متاح`, type: 'sunny' }));
+      
+      // Fallback forecast
+      const ARABIC_WEEKDAYS = {
+        6: 'السبت',
+        0: 'الأحد',
+        1: 'الأثنين',
+        2: 'الثلاثاء',
+        3: 'الاربعاء',
+        4: 'الخميس',
+        5: 'الجمعة'
+      };
+      const DAY_ORDER = { 6: 0, 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
+      const today = new Date();
+      const fallbackDays = [];
+      const daysSinceSat = (today.getDay() + 1) % 7;
+      const saturdayDate = new Date(today);
+      saturdayDate.setDate(today.getDate() - daysSinceSat);
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(saturdayDate);
+        d.setDate(saturdayDate.getDate() + i);
+        const dayOfWeek = d.getDay();
+        fallbackDays.push({
+          name: ARABIC_WEEKDAYS[dayOfWeek],
+          dayOfWeek,
+          Icon: Sun,
+          isToday: d.toDateString() === today.toDateString()
+        });
+      }
+      fallbackDays.sort((a, b) => DAY_ORDER[a.dayOfWeek] - DAY_ORDER[b.dayOfWeek]);
+      setWeeklyForecast(fallbackDays);
     }
   };
 
@@ -342,44 +432,51 @@ export default function DisplayScreen({ isPreview = false }) {
   return (
     <div className={`display-screen-container ${rotationClass} ${isPreview ? 'in-preview' : ''}`}>
       {/* Top Banner (Header) */}
-      <header className="display-header glass-element">
-        {/* Right Side: Brand Logo & Title (Single Line) */}
-        <div className="display-logo-area">
-          {settings.stationLogo ? (
-            <img src={settings.stationLogo} alt="Logo" className="display-logo-img" />
-          ) : (
-            <img 
-              src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" 
-              alt="Logo" 
-              className="display-logo-img" 
-            />
-          )}
-          <h1 className="display-station-name-single">
-            {(!settings.stationName || settings.stationName === 'محطة جو ستيشن الرقمية') ? 'شركة هلا السعودية للخدمات البترولية' : settings.stationName}
-          </h1>
+      <header className={`display-header weather-bg-${weather.type || 'sunny'}`}>
+        <div className="header-top-row">
+          {/* Left Side: Date, Time, Temp stacked */}
+          <div className="display-info-stack">
+            <div className="display-date-row">{currentDate}</div>
+            <div className="display-time-row">{currentTime}</div>
+            <div className="display-weather-row">
+              <span className="weather-temp-val">{weather.temp}</span>
+              <div className="weather-icon-wrapper">
+                <WeatherIcon size={56} className="weather-icon-glow" />
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side: White Logo */}
+          <div className="display-logo-area">
+            {settings.stationLogo ? (
+              <img src={settings.stationLogo} alt="Logo" className="display-logo-img" />
+            ) : (
+              <img 
+                src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" 
+                alt="Logo" 
+                className="display-logo-img" 
+              />
+            )}
+          </div>
         </div>
 
-        {/* Left Side: Dynamic Info Widgets Stacked (Weather on top, Clock underneath) */}
-        <div className="display-widgets-stack">
-          {/* Weather Widget (Top Left) */}
-          <div className="display-weather-row">
-            <div className="weather-meta-row">
-              <span className="weather-temp-small">{weather.temp}</span>
-              <span className="weather-city-small">{weather.text}</span>
-            </div>
-            <div className="weather-icon-box-small">
-              <WeatherIcon size={44} className="weather-glow" />
-            </div>
-          </div>
-
-          {/* Clock Widget (Bottom Left, Under Weather) */}
-          <div className="display-clock-row">
-            <div className="display-time-small">
-              <Clock size={32} className="clock-pulse" />
-              <span>{currentTime}</span>
-            </div>
-            <div className="display-date-small">{currentDate}</div>
-          </div>
+        {/* Weekly Weather Forecast Bar */}
+        <div className="display-forecast-bar">
+          {weeklyForecast.map((day, idx) => {
+            const DayIcon = day.Icon;
+            return (
+              <div 
+                key={idx} 
+                className={`forecast-day-col ${day.isToday ? 'is-today' : ''}`}
+              >
+                {day.isToday && <div className="today-arrow">▼</div>}
+                <div className="forecast-icon-box">
+                  <DayIcon size={28} className="forecast-icon" />
+                </div>
+                <span className="forecast-day-name">{day.name}</span>
+              </div>
+            );
+          })}
         </div>
       </header>
 
@@ -467,22 +564,33 @@ export default function DisplayScreen({ isPreview = false }) {
         )}
       </main>
 
-      {/* Bottom Ticker Tape */}
-      <footer className="display-ticker-footer glass-element">
-        <div className="ticker-label">الحدث اليومي</div>
-        <div className="ticker-scroll-container">
-          <div 
-            className="ticker-marquee-text"
-            style={{ 
-              animationDuration: `${settings.tickerSpeed || 15}s` 
-            }}
-          >
-            {getTickerText()}
+      {/* Double Footer (Mockup Exact Match) */}
+      <footer className="display-double-footer">
+        {/* Top layer: News Ticker in Orange Background */}
+        <div className="ticker-orange-layer">
+          <div className="ticker-scroll-container">
+            <div 
+              className="ticker-marquee-text"
+              style={{ 
+                animationDuration: `${settings.tickerSpeed || 15}s` 
+              }}
+            >
+              {getTickerText()}
+            </div>
           </div>
         </div>
+        
+        {/* Bottom layer: Dark Brand Bar */}
+        <div className="footer-dark-layer">
+          <span className="footer-brand-prefix">&gt;</span>
+          <img 
+            src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" 
+            alt="Go Station Logo" 
+            className="footer-mini-logo"
+          />
+          <span className="footer-brand-text">station and more .</span>
+        </div>
       </footer>
-
-
     </div>
   );
 }
