@@ -1144,11 +1144,11 @@ textarea.form-control {
 }
 
 .display-logo-img {
-  height: 175px;
+  height: 220px;
   width: auto;
-  max-width: 380px;
+  max-width: 440px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.25));
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
 }
 
 /* Left Info Stack */

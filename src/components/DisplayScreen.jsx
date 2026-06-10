@@ -51,6 +51,24 @@ const ColoredCloudLightning = ({ size = 28 }) => (
   </svg>
 );
 
+const ColoredCloudSunRain = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="forecast-icon">
+    <circle cx="16" cy="10" r="3.5" fill="#ffd54f" stroke="#ffb300" strokeWidth="1.2" />
+    <path d="M16 4v1.5M16 14.5v1.5M20.24 5.76l-1.06 1.06M12.82 11.18l-1.06 1.06M21 10h-1.5M13.5 10H12M19.18 13.18l1.06 1.06M11.76 5.76l1.06 1.06" stroke="#ffb300" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M5 16a4 4 0 0 1 0-8 4.3 4.3 0 0 1 1 .1 5 5 0 0 1 9.4 2.4A4 4 0 0 1 15 18H6a4 4 0 0 1-1-2z" fill="#ffffff" stroke="#e0e0e0" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M8 19v3M12 19v3M16 19v3" stroke="#29b6f6" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const ColoredCloudSunLightning = ({ size = 28 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="forecast-icon">
+    <circle cx="16" cy="10" r="3.5" fill="#ffd54f" stroke="#ffb300" strokeWidth="1.2" />
+    <path d="M16 4v1.5M16 14.5v1.5M20.24 5.76l-1.06 1.06M12.82 11.18l-1.06 1.06M21 10h-1.5M13.5 10H12M19.18 13.18l1.06 1.06M11.76 5.76l1.06 1.06" stroke="#ffb300" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M5 16a4 4 0 0 1 0-8 4.3 4.3 0 0 1 1 .1 5 5 0 0 1 9.4 2.4A4 4 0 0 1 15 18H6a4 4 0 0 1-1-2z" fill="#ffffff" stroke="#e0e0e0" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M13 18l-3 3.5h3L11 25" stroke="#ffd54f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#ffd54f" />
+  </svg>
+);
+
 const CITIES_COORDINATES = {
   Riyadh: { name: 'الرياض', lat: 24.7136, lon: 46.6753 },
   Jeddah: { name: 'جدة', lat: 21.5433, lon: 39.1728 },
@@ -69,9 +87,11 @@ function getWeatherDetails(code) {
   if (code === 0) return { text: 'مشمس صافٍ', Icon: ColoredSun, type: 'sunny' };
   if ([1, 2, 3].includes(code)) return { text: 'غائم جزئياً', Icon: ColoredCloudSun, type: 'cloudy' };
   if ([45, 48].includes(code)) return { text: 'ضباب', Icon: ColoredCloud, type: 'foggy' };
-  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { text: 'أمطار', Icon: ColoredCloudRain, type: 'rainy' };
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67].includes(code)) return { text: 'أمطار', Icon: ColoredCloudRain, type: 'rainy' };
+  if ([80, 81, 82].includes(code)) return { text: 'زخات مطر', Icon: ColoredCloudSunRain, type: 'rainy' };
   if ([71, 73, 75, 77, 85, 86].includes(code)) return { text: 'ثلوج', Icon: ColoredCloudSnow, type: 'snowy' };
-  if ([95, 96, 99].includes(code)) return { text: 'عاصفة رعدية', Icon: ColoredCloudLightning, type: 'stormy' };
+  if ([95].includes(code)) return { text: 'عاصفة رعدية', Icon: ColoredCloudSunLightning, type: 'stormy' };
+  if ([96, 99].includes(code)) return { text: 'عاصفة رعدية شديدة', Icon: ColoredCloudLightning, type: 'stormy' };
   return { text: 'معتدل', Icon: ColoredSun, type: 'sunny' };
 }
 
@@ -431,6 +451,17 @@ export default function DisplayScreen({ isPreview = false }) {
         4: 'الخميس',
         5: 'الجمعة'
       };
+      
+      const fallbackIcons = {
+        6: ColoredCloudSun,           // Saturday
+        0: ColoredCloudSunRain,       // Sunday
+        1: ColoredCloudSunLightning,  // Monday
+        2: ColoredCloudRain,          // Tuesday
+        3: ColoredSun,                // Wednesday
+        4: ColoredCloudSunLightning,  // Thursday
+        5: ColoredSun                 // Friday
+      };
+
       const DAY_ORDER = { 6: 0, 0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6 };
       const today = new Date();
       const fallbackDays = [];
@@ -445,7 +476,7 @@ export default function DisplayScreen({ isPreview = false }) {
         fallbackDays.push({
           name: ARABIC_WEEKDAYS[dayOfWeek],
           dayOfWeek,
-          Icon: Sun,
+          Icon: fallbackIcons[dayOfWeek] || ColoredSun,
           isToday: d.toDateString() === today.toDateString()
         });
       }
@@ -468,7 +499,7 @@ export default function DisplayScreen({ isPreview = false }) {
   // Helper to compile ticker messages
   const getTickerText = () => {
     if (tickerItems.length === 0) {
-      return 'أهلاً بكم في نظام جو ستيشن - شاشات عرض رقمية ذكية ومتكاملة...';
+      return 'أهلاً بكم في مقر قوستيشن الرئيسي - يسعدنا أن نقدم لكم أفضل الخدمات البترولية المتكاملة...';
     }
     return tickerItems.map(item => item.text).join('   |   🚀   |   ');
   };
