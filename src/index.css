@@ -1416,6 +1416,29 @@ textarea.form-control {
   color: #ffffff;
 }
 
+/* Video title overlay for YouTube preview fallback card */
+.youtube-title-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+  padding: 30px 20px 15px 20px;
+  text-align: center;
+  z-index: 50;
+}
+
+.youtube-title-overlay span {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
 /* Floating overlay title */
 .display-item-overlay-title {
   position: absolute;
@@ -1554,6 +1577,7 @@ textarea.form-control {
   display: inline-block;
   direction: rtl; /* correct Arabic rendering direction */
   padding-right: 60px; /* spacing between repeat blocks */
+  flex-shrink: 0; /* prevent shrinking in flex containers */
 }
 
 .footer-dark-layer {
@@ -1573,7 +1597,7 @@ textarea.form-control {
 }
 
 @keyframes marquee-ltr {
-  0% { transform: translate3d(-50%, 0, 0); }
+  0% { transform: translate3d(-25%, 0, 0); }
   100% { transform: translate3d(0%, 0, 0); }
 }
 

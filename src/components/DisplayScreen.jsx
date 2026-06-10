@@ -273,7 +273,9 @@ export default function DisplayScreen({ isPreview = false }) {
     if (playlist.length === 0) return;
     const currentItem = playlist[currentIndex];
     if (currentItem) {
-      const itemDuration = currentItem.duration || 10;
+      // Capped duration for preview mode to allow rapid testing and rotation verification
+      const baseDuration = currentItem.duration || 10;
+      const itemDuration = isPreview ? Math.min(baseDuration, 5) : baseDuration;
       durationTotalRef.current = itemDuration;
       setTimeRemaining(itemDuration);
       
@@ -328,24 +330,20 @@ export default function DisplayScreen({ isPreview = false }) {
   }, [timeRemaining, playlist.length]);
 
   const loadContent = async () => {
+    const now = new Date();
+
+    // Load settings
+    try {
+      const s = await db.getSettings();
+      setSettings(s || {});
+    } catch (err) {
+      console.error('Error loading settings for display screen:', err);
+    }
+
+    // Load playlist
     try {
       const pl = await db.getPlaylist();
-      const ti = await db.getTickerItems();
-      const s = await db.getSettings();
-
-      setSettings(s);
-      
-      // Filter out expired and un-started scheduled items
-      const now = new Date();
-      
-      const activePlaylist = pl.filter(item => {
-        if (item.scheduleType === 'always') return true;
-        const start = new Date(item.startDateTime);
-        const end = new Date(item.endDateTime);
-        return now >= start && now <= end;
-      });
-
-      const activeTicker = ti.filter(item => {
+      const activePlaylist = (pl || []).filter(item => {
         if (item.scheduleType === 'always') return true;
         const start = new Date(item.startDateTime);
         const end = new Date(item.endDateTime);
@@ -358,19 +356,33 @@ export default function DisplayScreen({ isPreview = false }) {
         }
         return activePlaylist;
       });
-      setTickerItems(prev => {
-        if (areTickerItemsEqual(prev, activeTicker)) {
-          return prev;
-        }
-        return activeTicker;
-      });
 
       // Adjust index if out of bounds
       if (currentIndex >= activePlaylist.length) {
         setCurrentIndex(0);
       }
     } catch (err) {
-      console.error('Error loading content for display screen:', err);
+      console.error('Error loading playlist for display screen:', err);
+    }
+
+    // Load ticker items
+    try {
+      const ti = await db.getTickerItems();
+      const activeTicker = (ti || []).filter(item => {
+        if (item.scheduleType === 'always') return true;
+        const start = new Date(item.startDateTime);
+        const end = new Date(item.endDateTime);
+        return now >= start && now <= end;
+      });
+
+      setTickerItems(prev => {
+        if (areTickerItemsEqual(prev, activeTicker)) {
+          return prev;
+        }
+        return activeTicker;
+      });
+    } catch (err) {
+      console.error('Error loading ticker items for display screen:', err);
     }
   };
 
@@ -674,6 +686,9 @@ export default function DisplayScreen({ isPreview = false }) {
                     <div className="youtube-play-overlay">
                       <Youtube size={48} className="youtube-icon-preview" />
                     </div>
+                    <div className="youtube-title-overlay">
+                      <span>{currentItem.title}</span>
+                    </div>
                   </div>
                 ) : (
                   <iframe
@@ -712,6 +727,8 @@ export default function DisplayScreen({ isPreview = false }) {
                 animationDuration: `${parseInt(settings.tickerSpeed) || 15}s` 
               }}
             >
+              <span>{getTickerText()}</span>
+              <span>{getTickerText()}</span>
               <span>{getTickerText()}</span>
               <span>{getTickerText()}</span>
             </div>
