@@ -5,7 +5,7 @@ import DisplayScreen from './DisplayScreen';
 import { 
   Plus, Trash2, Edit2, Settings, Users, FileText, Play, Image, 
   Globe, LogOut, ArrowUp, ArrowDown, RefreshCw, UserPlus, 
-  Clock, CloudSun, Layout, Save, Eye, ClipboardList, CheckCircle2, AlertTriangle,
+  Clock, CloudSun, Layout, Save, Eye, EyeOff, ClipboardList, CheckCircle2, AlertTriangle,
   Sun, Moon
 } from 'lucide-react';
 
@@ -98,11 +98,13 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [userRole, setUserRole] = useState('editor'); // editor, specialist, hr
   const [editingUser, setEditingUser] = useState(null); // User object being edited
   const [userError, setUserError] = useState('');
+  const [showUserPassword, setShowUserPassword] = useState(false);
 
   // Admin Profile Edit State
   const [adminUsername, setAdminUsername] = useState(currentUser.username);
   const [adminPassword, setAdminPassword] = useState(currentUser.password || '');
   const [adminError, setAdminError] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // Settings State variables
   const [stationName, setStationName] = useState('');
@@ -603,7 +605,7 @@ export default function Dashboard({ currentUser, onLogout }) {
       loadData();
     } catch (err) {
       console.error(err);
-      setUserError('حدث خطأ أثناء حفظ المستخدم');
+      setUserError('حدث خطأ أثناء حفظ المستخدم: ' + (err.message || err));
     }
   };
 
@@ -685,7 +687,7 @@ export default function Dashboard({ currentUser, onLogout }) {
 
     } catch (err) {
       console.error(err);
-      setAdminError('حدث خطأ أثناء تحديث الحساب الشخصي');
+      setAdminError('حدث خطأ أثناء تحديث الحساب الشخصي: ' + (err.message || err));
     }
   };
 
@@ -1401,14 +1403,35 @@ export default function Dashboard({ currentUser, onLogout }) {
 
                       <div className="form-group">
                         <label>كلمة المرور للمدير</label>
-                        <input 
-                          type="password" 
-                          value={adminPassword} 
-                          onChange={(e) => setAdminPassword(e.target.value)}
-                          placeholder="أدخل كلمة المرور الجديدة"
-                          className="form-control"
-                          required
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input 
+                            type={showAdminPassword ? "text" : "password"} 
+                            value={adminPassword} 
+                            onChange={(e) => setAdminPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور الجديدة"
+                            className="form-control"
+                            style={{ paddingLeft: '45px' }}
+                            required
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setShowAdminPassword(!showAdminPassword)}
+                            style={{
+                              position: 'absolute',
+                              left: '10px',
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--text-muted)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '5px'
+                            }}
+                            title={showAdminPassword ? "إخفاء كلمة المرور" : "عرض كلمة المرور"}
+                          >
+                            {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
                       </div>
 
                       <button type="submit" className="btn-primary full-width">
@@ -1436,14 +1459,35 @@ export default function Dashboard({ currentUser, onLogout }) {
 
                       <div className="form-group">
                         <label>كلمة المرور</label>
-                        <input 
-                          type="password" 
-                          value={newPassword} 
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="أدخل كلمة المرور"
-                          className="form-control"
-                          required
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input 
+                            type={showUserPassword ? "text" : "password"} 
+                            value={newPassword} 
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور"
+                            className="form-control"
+                            style={{ paddingLeft: '45px' }}
+                            required
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setShowUserPassword(!showUserPassword)}
+                            style={{
+                              position: 'absolute',
+                              left: '10px',
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--text-muted)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '5px'
+                            }}
+                            title={showUserPassword ? "إخفاء كلمة المرور" : "عرض كلمة المرور"}
+                          >
+                            {showUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
                       </div>
 
                       <div className="form-group">

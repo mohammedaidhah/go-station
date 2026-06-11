@@ -122,6 +122,28 @@ const mapJsLogToDb = (item) => {
   return dbItem;
 };
 
+const mapDbUserToJs = (user) => {
+  if (!user) return null;
+  return {
+    username: user.username,
+    password: user.password,
+    role: user.role,
+    createdBy: user.created_by,
+    createdAt: user.created_at
+  };
+};
+
+const mapJsUserToDb = (user) => {
+  if (!user) return null;
+  return {
+    username: user.username,
+    password: user.password,
+    role: user.role,
+    created_by: user.createdBy,
+    created_at: user.createdAt
+  };
+};
+
 // -----------------------------------------
 // LOCAL INDEXEDDB CODE
 // -----------------------------------------
@@ -256,7 +278,7 @@ export const db = {
     if (supabase) {
       const { data, error } = await supabase.from('users').select('*');
       if (error) throw error;
-      return data;
+      return data.map(mapDbUserToJs);
     }
     const d = await getDB();
     return readTransaction(d, 'users', 'getAll');
@@ -266,7 +288,7 @@ export const db = {
     if (supabase) {
       const { data, error } = await supabase.from('users').select('*').eq('username', username).maybeSingle();
       if (error) throw error;
-      return data;
+      return mapDbUserToJs(data);
     }
     const d = await getDB();
     return readTransaction(d, 'users', 'get', username);
@@ -274,7 +296,8 @@ export const db = {
 
   async saveUser(user) {
     if (supabase) {
-      const { error } = await supabase.from('users').upsert(user);
+      const dbUser = mapJsUserToDb(user);
+      const { error } = await supabase.from('users').upsert(dbUser);
       if (error) throw error;
       return user.username;
     }
