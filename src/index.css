@@ -1652,13 +1652,30 @@ textarea.form-control {
   animation: marquee-ltr 25s linear infinite;
   direction: ltr; /* standard LTR container layout */
   width: max-content;
+  align-items: center; /* center items vertically */
 }
 
-.ticker-marquee-text span {
+.ticker-marquee-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+  direction: rtl; /* correct Arabic reading order */
+  padding: 0;
+}
+
+.ticker-item-text {
   display: inline-block;
-  direction: rtl; /* correct Arabic rendering direction */
-  padding-right: 60px; /* spacing between repeat blocks */
-  flex-shrink: 0; /* prevent shrinking in flex containers */
+  white-space: nowrap;
+}
+
+.ticker-separator-logo {
+  height: 22px; /* small logo separator */
+  width: auto;
+  margin: 0 40px; /* spacing around the logo separator */
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
 }
 
 .footer-dark-layer {

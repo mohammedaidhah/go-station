@@ -553,12 +553,22 @@ export default function DisplayScreen({ isPreview = false }) {
     }
   };
 
-  // Helper to compile ticker messages
-  const getTickerText = () => {
-    if (tickerItems.length === 0) {
-      return 'أهلاً بكم في مقر قوستيشن الرئيسي - يسعدنا أن نقدم لكم أفضل الخدمات البترولية المتكاملة...   |   🚀   |   ';
-    }
-    return tickerItems.map(item => item.text).join('   |   🚀   |   ') + '   |   🚀   |   ';
+  // Helper to render ticker items with image separators
+  const renderTickerContent = () => {
+    const items = tickerItems.length > 0 
+      ? tickerItems 
+      : [{ id: 'default', text: 'أهلاً بكم في مقر قوستيشن الرئيسي - يسعدنا أن نقدم لكم أفضل الخدمات البترولية المتكاملة...' }];
+
+    return items.map((item, idx) => (
+      <React.Fragment key={item.id || idx}>
+        <span className="ticker-item-text">{item.text}</span>
+        <img 
+          src="https://res.cloudinary.com/dca2x8jje/image/upload/v1781164357/logo_gostation_WITH_OUT_qd0iq7.png" 
+          alt="Go Station" 
+          className="ticker-separator-logo" 
+        />
+      </React.Fragment>
+    ));
   };
 
   const currentItem = playlist[currentIndex];
@@ -724,10 +734,18 @@ export default function DisplayScreen({ isPreview = false }) {
                 animationDuration: `${parseInt(settings.tickerSpeed) || 15}s` 
               }}
             >
-              <span>{getTickerText()}</span>
-              <span>{getTickerText()}</span>
-              <span>{getTickerText()}</span>
-              <span>{getTickerText()}</span>
+              <div className="ticker-marquee-group">
+                {renderTickerContent()}
+              </div>
+              <div className="ticker-marquee-group">
+                {renderTickerContent()}
+              </div>
+              <div className="ticker-marquee-group">
+                {renderTickerContent()}
+              </div>
+              <div className="ticker-marquee-group">
+                {renderTickerContent()}
+              </div>
             </div>
           </div>
         </div>
