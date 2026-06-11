@@ -1309,7 +1309,7 @@ textarea.form-control {
 /* Weekly Weather Forecast Bar */
 .display-forecast-bar {
   display: flex;
-  flex-direction: row-reverse; /* RTL layout: Saturday is right, Friday is left */
+  flex-direction: row; /* Natural RTL layout: Saturday is right, Friday is left */
   width: 100%;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
