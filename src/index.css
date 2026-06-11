@@ -289,13 +289,20 @@ textarea.form-control {
   gap: 12px;
 }
 
+.header-brand-logo {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.12));
+}
+
 .icon-glow {
   color: var(--primary);
   filter: drop-shadow(0 0 8px var(--primary-glow));
 }
 
 .header-brand h2 {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 800;
 }
 

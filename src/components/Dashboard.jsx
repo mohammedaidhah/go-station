@@ -756,8 +756,12 @@ export default function Dashboard({ currentUser, onLogout }) {
       {/* Top Header */}
       <header className="dashboard-header glass-card">
         <div className="header-brand">
-          <Layout className="icon-glow" size={24} />
-          <h2>Go Station <span className="badge">لوحة التحكم</span></h2>
+          {stationLogo ? (
+            <img src={stationLogo} alt="Logo" className="header-brand-logo" />
+          ) : (
+            <img src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" alt="Logo" className="header-brand-logo" />
+          )}
+          <h2>شركة هلا السعودية للخدمات البترولية</h2>
         </div>
         
         <div className="header-actions">
