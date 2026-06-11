@@ -5,7 +5,7 @@ import DisplayScreen from './DisplayScreen';
 import { 
   Plus, Trash2, Edit2, Settings, Users, FileText, Play, Image, 
   Globe, LogOut, ArrowUp, ArrowDown, RefreshCw, UserPlus, 
-  Clock, CloudSun, Layout, Save, Eye, EyeOff, ClipboardList, CheckCircle2, AlertTriangle,
+  Clock, CloudSun, Layout, Save, Eye, EyeOff, ClipboardList, CheckCircle2, AlertTriangle, Info,
   Sun, Moon
 } from 'lucide-react';
 
@@ -118,6 +118,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [adminPassword, setAdminPassword] = useState(currentUser.password || '');
   const [adminError, setAdminError] = useState('');
   const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [confirmModal, setConfirmModal] = useState(null); // { title, message, onConfirm }
 
   // Settings State variables
   const [stationName, setStationName] = useState('');
@@ -324,6 +325,9 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   const resetPlaylistForm = () => {
+    if (editingItemId) {
+      showNotification('تم إلغاء التعديل', 'info');
+    }
     setTitle('');
     setUrl('');
     setFileBase64('');
@@ -359,11 +363,14 @@ export default function Dashboard({ currentUser, onLogout }) {
     setStartDateTime(item.startDateTime || '');
     setEndDateTime(item.endDateTime || '');
     
+    // Show premium visual notification instead of native popup
+    showNotification(`بدء تعديل عنصر البث: ${item.title}`, 'info');
+
     // Scroll to form
     safeScrollToTop();
   };
 
-  const handleDeletePlaylistItem = async (item) => {
+  const handleDeletePlaylistItem = (item) => {
     if (currentUser.role === 'specialist') {
       showNotification('لا تملك الصلاحية لحذف عناصر العرض', 'error');
       return;
@@ -374,18 +381,22 @@ export default function Dashboard({ currentUser, onLogout }) {
       return;
     }
 
-    if (!confirm(`هل أنت متأكد من حذف العنصر: ${item.title}؟`)) return;
-
-    try {
-      await db.deletePlaylistItem(item.id);
-      await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'PLAYLIST', `حذف العنصر: ${item.title}`);
-      showNotification('تم حذف العنصر بنجاح');
-      loadData();
-      syncContent();
-    } catch (err) {
-      console.error(err);
-      showNotification('فشل في حذف العنصر', 'error');
-    }
+    setConfirmModal({
+      title: 'حذف عنصر عرض',
+      message: `هل أنت متأكد من حذف العنصر "${item.title}" نهائياً من شاشة البث؟`,
+      onConfirm: async () => {
+        try {
+          await db.deletePlaylistItem(item.id);
+          await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'PLAYLIST', `حذف العنصر: ${item.title}`);
+          showNotification('تم حذف العنصر بنجاح');
+          loadData();
+          syncContent();
+        } catch (err) {
+          console.error(err);
+          showNotification('فشل في حذف العنصر', 'error');
+        }
+      }
+    });
   };
 
   // Reorder Items
@@ -472,10 +483,13 @@ export default function Dashboard({ currentUser, onLogout }) {
     setTickerText(item.text);
     setTickerSchedule(item.scheduleType || 'always');
     setTickerStart(item.startDateTime || '');
+    setEditingUser(null); // Reset user edit state if switching
     setTickerEnd(item.endDateTime || '');
+    
+    showNotification(`بدء تعديل الخبر: ${item.text.length > 25 ? item.text.substring(0, 25) + '...' : item.text}`, 'info');
   };
 
-  const handleDeleteTicker = async (item) => {
+  const handleDeleteTicker = (item) => {
     if (currentUser.role === 'specialist') {
       showNotification('لا تملك الصلاحية لحذف الأخبار', 'error');
       return;
@@ -485,18 +499,22 @@ export default function Dashboard({ currentUser, onLogout }) {
       return;
     }
 
-    if (!confirm('هل تريد حذف هذا الخبر؟')) return;
-
-    try {
-      await db.deleteTickerItem(item.id);
-      await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'TICKER', `حذف خبر: ${item.text.substring(0, 30)}...`);
-      loadData();
-      syncContent();
-      showNotification('تم حذف الخبر بنجاح');
-    } catch (err) {
-      console.error(err);
-      showNotification('فشل حذف الخبر', 'error');
-    }
+    setConfirmModal({
+      title: 'حذف خبر من الشريط',
+      message: `هل أنت متأكد من حذف هذا الخبر نهائياً من شريط الأخبار؟`,
+      onConfirm: async () => {
+        try {
+          await db.deleteTickerItem(item.id);
+          await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'TICKER', `حذف خبر: ${item.text.substring(0, 30)}...`);
+          loadData();
+          syncContent();
+          showNotification('تم حذف الخبر بنجاح');
+        } catch (err) {
+          console.error(err);
+          showNotification('فشل حذف الخبر', 'error');
+        }
+      }
+    });
   };
 
   // Settings Save
@@ -623,17 +641,21 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   const handleStartEditUser = (user) => {
-    alert('بدء تعديل الحساب: ' + user.username);
     setEditingUser(user);
     setNewUsername(user.username);
     setNewPassword(user.password || '');
     setUserRole(user.role || 'editor');
     setUserError('');
+    // Show premium visual notification instead of native popup
+    showNotification(`بدء تعديل حساب المستخدم: ${user.username}`, 'info');
     // Scroll to top/form safely
     safeScrollToTop();
   };
 
   const handleCancelEditUser = () => {
+    if (editingUser) {
+      showNotification('تم إلغاء التعديل', 'info');
+    }
     setEditingUser(null);
     setNewUsername('');
     setNewPassword('');
@@ -641,21 +663,25 @@ export default function Dashboard({ currentUser, onLogout }) {
     setUserError('');
   };
 
-  const handleDeleteUser = async (username) => {
-    if (!confirm(`هل أنت متأكد من حذف الحساب: ${username}؟`)) return;
-
-    try {
-      await db.deleteUser(username);
-      await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'USER', `حذف حساب المستخدم: ${username}`);
-      loadData();
-      showNotification('تم حذف حساب المستخدم بنجاح');
-      if (editingUser && editingUser.username === username) {
-        handleCancelEditUser();
+  const handleDeleteUser = (username) => {
+    setConfirmModal({
+      title: 'حذف حساب مستخدم',
+      message: `هل أنت متأكد من حذف الحساب "${username}" نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`,
+      onConfirm: async () => {
+        try {
+          await db.deleteUser(username);
+          await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'USER', `حذف حساب المستخدم: ${username}`);
+          loadData();
+          showNotification('تم حذف حساب المستخدم بنجاح');
+          if (editingUser && editingUser.username === username) {
+            handleCancelEditUser();
+          }
+        } catch (err) {
+          console.error(err);
+          showNotification('فشل حذف المستخدم', 'error');
+        }
       }
-    } catch (err) {
-      console.error(err);
-      showNotification('فشل حذف المستخدم', 'error');
-    }
+    });
   };
 
   const handleUpdateAdminProfile = async (e) => {
@@ -708,16 +734,21 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   // Clear Logs
-  const handleClearLogs = async () => {
-    if (!confirm('هل تريد مسح سجل العمليات بالكامل؟ لا يمكن التراجع عن هذا الإجراء.')) return;
-    try {
-      await db.clearLogs();
-      loadData();
-      showNotification('تم مسح السجل بنجاح');
-    } catch (err) {
-      console.error(err);
-      showNotification('فشل مسح السجل', 'error');
-    }
+  const handleClearLogs = () => {
+    setConfirmModal({
+      title: 'مسح سجل العمليات',
+      message: 'هل تريد مسح سجل العمليات بالكامل؟ لا يمكن التراجع عن هذا الإجراء.',
+      onConfirm: async () => {
+        try {
+          await db.clearLogs();
+          loadData();
+          showNotification('تم مسح السجل بنجاح');
+        } catch (err) {
+          console.error(err);
+          showNotification('فشل مسح السجل', 'error');
+        }
+      }
+    });
   };
 
   return (
@@ -802,7 +833,13 @@ export default function Dashboard({ currentUser, onLogout }) {
         <main className="workspace-section">
           {notification && (
             <div className={`alert-banner alert-${notification.type} slide-in`}>
-              {notification.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}
+              {notification.type === 'error' ? (
+                <AlertTriangle size={18} />
+              ) : notification.type === 'info' ? (
+                <Info size={18} />
+              ) : (
+                <CheckCircle2 size={18} />
+              )}
               <span>{notification.text}</span>
             </div>
           )}
@@ -1180,6 +1217,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                     <button onClick={() => {
                       setTickerText('');
                       setEditingTickerId(null);
+                      showNotification('تم إلغاء التعديل', 'info');
                     }} className="btn-secondary">إلغاء التعديل</button>
                   )}
                 </div>
@@ -1677,6 +1715,40 @@ export default function Dashboard({ currentUser, onLogout }) {
         </main>
 
       </div>
+
+      {/* Custom Confirmation Modal */}
+      {confirmModal && (
+        <div className="custom-modal-overlay">
+          <div className="custom-modal-box glass-card">
+            <div className="modal-header" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <AlertTriangle size={20} className="icon-warning" style={{ color: 'var(--primary)', filter: 'drop-shadow(0 0 6px var(--primary-glow))' }} />
+              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '700' }}>{confirmModal.title || 'تأكيد الإجراء'}</h3>
+            </div>
+            <div className="modal-body" style={{ margin: '15px 0 20px', color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6' }}>
+              <p>{confirmModal.message}</p>
+            </div>
+            <div className="modal-actions">
+              <button 
+                type="button" 
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal(null);
+                }} 
+                className="btn-confirm-danger"
+              >
+                نعم، استمر
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setConfirmModal(null)} 
+                className="btn-cancel"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
