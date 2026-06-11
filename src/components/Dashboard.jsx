@@ -50,6 +50,19 @@ const getRoleArabicName = (role) => {
   }
 };
 
+const safeScrollToTop = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  } catch (e) {
+    console.warn('Smooth scroll failed, falling back to basic scroll', e);
+    try {
+      window.scrollTo(0, 0);
+    } catch (err) {}
+  }
+};
+
 export default function Dashboard({ currentUser, onLogout }) {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('dashboard_theme') || 'dark';
@@ -347,7 +360,7 @@ export default function Dashboard({ currentUser, onLogout }) {
     setEndDateTime(item.endDateTime || '');
     
     // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    safeScrollToTop();
   };
 
   const handleDeletePlaylistItem = async (item) => {
@@ -615,8 +628,8 @@ export default function Dashboard({ currentUser, onLogout }) {
     setNewPassword(user.password || '');
     setUserRole(user.role || 'editor');
     setUserError('');
-    // Scroll to top/form smoothly
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to top/form safely
+    safeScrollToTop();
   };
 
   const handleCancelEditUser = () => {
