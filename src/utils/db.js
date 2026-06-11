@@ -364,10 +364,19 @@ export const db = {
 
     if (supabase) {
       const dbItem = mapJsPlaylistToDb(item);
-      const { data, error } = await supabase.from('playlist').upsert(dbItem).select();
-      if (error) throw error;
+      let result;
+      if (dbItem.id) {
+        const { id, ...updateFields } = dbItem;
+        const { data, error } = await supabase.from('playlist').update(updateFields).eq('id', id).select();
+        if (error) throw error;
+        result = data;
+      } else {
+        const { data, error } = await supabase.from('playlist').insert(dbItem).select();
+        if (error) throw error;
+        result = data;
+      }
       
-      const jsItem = mapDbPlaylistToJs(data[0]);
+      const jsItem = mapDbPlaylistToJs(result[0]);
       // Sync local cache
       try {
         const d = await getDB();
@@ -407,8 +416,14 @@ export const db = {
       });
       
       for (const dbItem of updates) {
-        const { error } = await supabase.from('playlist').upsert(dbItem);
-        if (error) throw error;
+        if (dbItem.id) {
+          const { id, ...updateFields } = dbItem;
+          const { error } = await supabase.from('playlist').update(updateFields).eq('id', id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from('playlist').insert(dbItem);
+          if (error) throw error;
+        }
       }
       
       try {
@@ -471,10 +486,19 @@ export const db = {
 
     if (supabase) {
       const dbItem = mapJsTickerToDb(item);
-      const { data, error } = await supabase.from('ticker_items').upsert(dbItem).select();
-      if (error) throw error;
+      let result;
+      if (dbItem.id) {
+        const { id, ...updateFields } = dbItem;
+        const { data, error } = await supabase.from('ticker_items').update(updateFields).eq('id', id).select();
+        if (error) throw error;
+        result = data;
+      } else {
+        const { data, error } = await supabase.from('ticker_items').insert(dbItem).select();
+        if (error) throw error;
+        result = data;
+      }
       
-      const jsItem = mapDbTickerToJs(data[0]);
+      const jsItem = mapDbTickerToJs(result[0]);
       try {
         const d = await getDB();
         await writeTransaction(d, 'ticker', 'put', jsItem);
