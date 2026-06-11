@@ -759,7 +759,14 @@ export default function Dashboard({ currentUser, onLogout }) {
           {stationLogo ? (
             <img src={stationLogo} alt="Logo" className="header-brand-logo" />
           ) : (
-            <img src="https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png" alt="Logo" className="header-brand-logo" />
+            <img 
+              src={theme === 'light' 
+                ? "https://res.cloudinary.com/dca2x8jje/image/upload/v1781166262/logo_gostation_lqv4rk.png" 
+                : "https://res.cloudinary.com/dca2x8jje/image/upload/v1780922392/logo_gostation_WHITE_ksopeg.png"
+              } 
+              alt="Logo" 
+              className="header-brand-logo" 
+            />
           )}
           <h2>شركة هلا السعودية للخدمات البترولية</h2>
         </div>
