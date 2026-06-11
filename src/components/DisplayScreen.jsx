@@ -739,6 +739,9 @@ export default function DisplayScreen({ isPreview = false }) {
             alt="GO. station and more ." 
             className="footer-brand-image"
           />
+          <span className="footer-marketing-text" style={{ direction: 'rtl' }}>
+            إدارة التسويق
+          </span>
         </div>
       </footer>
     </div>
