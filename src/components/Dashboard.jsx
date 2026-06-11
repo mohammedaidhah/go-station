@@ -623,6 +623,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   const handleStartEditUser = (user) => {
+    alert('بدء تعديل الحساب: ' + user.username);
     setEditingUser(user);
     setNewUsername(user.username);
     setNewPassword(user.password || '');
