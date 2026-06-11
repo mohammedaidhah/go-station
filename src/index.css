@@ -816,14 +816,78 @@ textarea.form-control {
 /* User Tab layout */
 .users-tab-layout {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  grid-template-columns: 1.2fr 1.5fr;
   gap: 24px;
+  align-items: start;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .users-tab-layout {
     grid-template-columns: 1fr;
   }
+}
+
+.users-forms-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.user-role-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-block;
+  line-height: 1.4;
+}
+
+.user-role-badge.owner {
+  background: rgba(235, 97, 35, 0.15);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.user-role-badge.editor {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+}
+
+.user-role-badge.specialist {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid #10b981;
+}
+
+.user-role-badge.hr {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+  border: 1px solid #8b5cf6;
+}
+
+.user-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit-user {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit-user:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
 }
 
 .user-form-box {

@@ -40,6 +40,16 @@ const SAUDI_CITIES = [
   { name: 'حائل', code: 'Hail', lat: 27.5219, lon: 41.6907 }
 ];
 
+const getRoleArabicName = (role) => {
+  switch (role) {
+    case 'owner': return 'المالك';
+    case 'editor': return 'محرر';
+    case 'specialist': return 'مختص';
+    case 'hr': return 'الموارد البشرية';
+    default: return role;
+  }
+};
+
 export default function Dashboard({ currentUser, onLogout }) {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('dashboard_theme') || 'dark';
@@ -85,7 +95,14 @@ export default function Dashboard({ currentUser, onLogout }) {
   // Users Form State
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [userRole, setUserRole] = useState('editor'); // editor, specialist, hr
+  const [editingUser, setEditingUser] = useState(null); // User object being edited
   const [userError, setUserError] = useState('');
+
+  // Admin Profile Edit State
+  const [adminUsername, setAdminUsername] = useState(currentUser.username);
+  const [adminPassword, setAdminPassword] = useState(currentUser.password || '');
+  const [adminError, setAdminError] = useState('');
 
   // Settings State variables
   const [stationName, setStationName] = useState('');
@@ -332,6 +349,10 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   const handleDeletePlaylistItem = async (item) => {
+    if (currentUser.role === 'specialist') {
+      showNotification('لا تملك الصلاحية لحذف عناصر العرض', 'error');
+      return;
+    }
     // Editor authorization check
     if (currentUser.role !== 'owner' && item.createdBy !== currentUser.username) {
       showNotification('يمكنك فقط حذف العناصر التي قمت بإضافتها بنفسك', 'error');
@@ -440,6 +461,10 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   const handleDeleteTicker = async (item) => {
+    if (currentUser.role === 'specialist') {
+      showNotification('لا تملك الصلاحية لحذف الأخبار', 'error');
+      return;
+    }
     if (currentUser.role !== 'owner' && item.createdBy !== currentUser.username) {
       showNotification('يمكنك فقط حذف الأشرطة الإخبارية التي أضفتها بنفسك', 'error');
       return;
@@ -505,7 +530,7 @@ export default function Dashboard({ currentUser, onLogout }) {
   };
 
   // Users Management
-  const handleAddEditor = async (e) => {
+  const handleSaveUser = async (e) => {
     e.preventDefault();
     setUserError('');
 
@@ -514,32 +539,88 @@ export default function Dashboard({ currentUser, onLogout }) {
       return;
     }
 
+    const targetUsername = newUsername.trim().toLowerCase();
+
     try {
-      const existing = await db.getUser(newUsername.trim().toLowerCase());
-      if (existing) {
-        setUserError('اسم المستخدم مسجل مسبقاً');
-        return;
+      if (editingUser) {
+        // Edit mode
+        if (targetUsername !== editingUser.username) {
+          const existing = await db.getUser(targetUsername);
+          if (existing) {
+            setUserError('اسم المستخدم الجديد مسجل مسبقاً');
+            return;
+          }
+        }
+
+        const updatedUser = {
+          username: targetUsername,
+          password: newPassword,
+          role: userRole,
+          createdBy: editingUser.createdBy,
+          createdAt: editingUser.createdAt
+        };
+
+        await db.saveUser(updatedUser);
+
+        if (targetUsername !== editingUser.username) {
+          await db.deleteUser(editingUser.username);
+        }
+
+        await db.addLog(
+          currentUser.username, 
+          currentUser.role, 
+          'EDIT', 
+          'USER', 
+          `تعديل حساب المستخدم: ${editingUser.username} (الاسم الجديد: ${targetUsername}، الدور: ${getRoleArabicName(userRole)})`
+        );
+
+        showNotification('تم تحديث حساب المستخدم بنجاح');
+        setEditingUser(null);
+      } else {
+        // Add mode
+        const existing = await db.getUser(targetUsername);
+        if (existing) {
+          setUserError('اسم المستخدم مسجل مسبقاً');
+          return;
+        }
+
+        const newUser = {
+          username: targetUsername,
+          password: newPassword,
+          role: userRole,
+          createdBy: currentUser.username,
+          createdAt: new Date().toISOString()
+        };
+
+        await db.saveUser(newUser);
+        await db.addLog(currentUser.username, currentUser.role, 'ADD', 'USER', `إضافة مستخدم جديد: ${newUser.username} (الدور: ${getRoleArabicName(userRole)})`);
+        showNotification('تم إضافة المستخدم بنجاح');
       }
 
-      const newUser = {
-        username: newUsername.trim().toLowerCase(),
-        password: newPassword,
-        role: 'editor',
-        createdBy: currentUser.username,
-        createdAt: new Date().toISOString()
-      };
-
-      await db.saveUser(newUser);
-      await db.addLog(currentUser.username, currentUser.role, 'ADD', 'USER', `إضافة محرر جديد: ${newUser.username}`);
-      
       setNewUsername('');
       setNewPassword('');
+      setUserRole('editor');
       loadData();
-      showNotification('تم إضافة المحرر بنجاح');
     } catch (err) {
       console.error(err);
-      setUserError('حدث خطأ أثناء إضافة المستخدم');
+      setUserError('حدث خطأ أثناء حفظ المستخدم');
     }
+  };
+
+  const handleStartEditUser = (user) => {
+    setEditingUser(user);
+    setNewUsername(user.username);
+    setNewPassword(user.password || '');
+    setUserRole(user.role || 'editor');
+    setUserError('');
+  };
+
+  const handleCancelEditUser = () => {
+    setEditingUser(null);
+    setNewUsername('');
+    setNewPassword('');
+    setUserRole('editor');
+    setUserError('');
   };
 
   const handleDeleteUser = async (username) => {
@@ -547,12 +628,64 @@ export default function Dashboard({ currentUser, onLogout }) {
 
     try {
       await db.deleteUser(username);
-      await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'USER', `حذف حساب المحرر: ${username}`);
+      await db.addLog(currentUser.username, currentUser.role, 'DELETE', 'USER', `حذف حساب المستخدم: ${username}`);
       loadData();
-      showNotification('تم حذف حساب المحرر بنجاح');
+      showNotification('تم حذف حساب المستخدم بنجاح');
+      if (editingUser && editingUser.username === username) {
+        handleCancelEditUser();
+      }
     } catch (err) {
       console.error(err);
       showNotification('فشل حذف المستخدم', 'error');
+    }
+  };
+
+  const handleUpdateAdminProfile = async (e) => {
+    e.preventDefault();
+    setAdminError('');
+
+    const targetUsername = adminUsername.trim().toLowerCase();
+    if (!targetUsername || !adminPassword.trim()) {
+      setAdminError('جميع الحقول مطلوبة');
+      return;
+    }
+
+    try {
+      if (targetUsername !== currentUser.username) {
+        const existing = await db.getUser(targetUsername);
+        if (existing) {
+          setAdminError('اسم المستخدم الجديد مسجل مسبقاً');
+          return;
+        }
+      }
+
+      const updatedAdmin = {
+        username: targetUsername,
+        password: adminPassword,
+        role: 'owner',
+        createdBy: currentUser.createdBy || 'system',
+        createdAt: currentUser.createdAt || new Date().toISOString()
+      };
+
+      await db.saveUser(updatedAdmin);
+
+      if (targetUsername !== currentUser.username) {
+        await db.deleteUser(currentUser.username);
+      }
+
+      await db.addLog(targetUsername, 'owner', 'EDIT', 'USER', `تحديث بيانات حساب المدير (الاسم الجديد: ${targetUsername})`);
+
+      showNotification('تم تحديث الحساب الشخصي بنجاح، جاري إعادة التحميل...');
+
+      localStorage.setItem('go_station_user', JSON.stringify(updatedAdmin));
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
+    } catch (err) {
+      console.error(err);
+      setAdminError('حدث خطأ أثناء تحديث الحساب الشخصي');
     }
   };
 
@@ -591,7 +724,7 @@ export default function Dashboard({ currentUser, onLogout }) {
             <span className="user-avatar">{currentUser.username[0].toUpperCase()}</span>
             <div className="user-info">
               <span className="username">{currentUser.username}</span>
-              <span className="role">{currentUser.role === 'owner' ? 'المالك' : 'محرر'}</span>
+              <span className="role">{getRoleArabicName(currentUser.role)}</span>
             </div>
           </div>
           
@@ -719,13 +852,15 @@ export default function Dashboard({ currentUser, onLogout }) {
               الشريط الإخباري
             </button>
             
-            <button 
-              className={activeTab === 'logs' ? 'tab-active' : ''} 
-              onClick={() => setActiveTab('logs')}
-            >
-              <FileText size={16} />
-              سجل العمليات
-            </button>
+             {currentUser.role !== 'hr' && (
+              <button 
+                className={activeTab === 'logs' ? 'tab-active' : ''} 
+                onClick={() => setActiveTab('logs')}
+              >
+                <FileText size={16} />
+                سجل العمليات
+              </button>
+            )}
 
             {currentUser.role === 'owner' && (
               <button 
@@ -733,7 +868,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                 onClick={() => setActiveTab('users')}
               >
                 <Users size={16} />
-                إدارة المحررين
+                إدارة المستخدمين
               </button>
             )}
 
@@ -1000,9 +1135,9 @@ export default function Dashboard({ currentUser, onLogout }) {
                                   </button>
                                   <button 
                                     onClick={() => handleDeletePlaylistItem(item)} 
-                                    disabled={currentUser.role !== 'owner' && item.createdBy !== currentUser.username}
+                                    disabled={currentUser.role === 'specialist' || (currentUser.role !== 'owner' && item.createdBy !== currentUser.username)}
                                     className="btn-action btn-delete"
-                                    title="حذف"
+                                    title={currentUser.role === 'specialist' ? "لا تملك صلاحية الحذف" : "حذف"}
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -1155,8 +1290,9 @@ export default function Dashboard({ currentUser, onLogout }) {
                                   </button>
                                   <button 
                                     onClick={() => handleDeleteTicker(item)} 
-                                    disabled={currentUser.role !== 'owner' && item.createdBy !== currentUser.username}
+                                    disabled={currentUser.role === 'specialist' || (currentUser.role !== 'owner' && item.createdBy !== currentUser.username)}
                                     className="btn-action btn-delete"
+                                    title={currentUser.role === 'specialist' ? "لا تملك صلاحية الحذف" : "حذف"}
                                   >
                                     <Trash2 size={14} />
                                   </button>
@@ -1173,7 +1309,7 @@ export default function Dashboard({ currentUser, onLogout }) {
             )}
 
             {/* 3. LOGS TAB */}
-            {activeTab === 'logs' && (
+            {activeTab === 'logs' && currentUser.role !== 'hr' && (
               <div className="tab-pane">
                 <div className="pane-header">
                   <h3>سجل عمليات المنصة (Activity Log)</h3>
@@ -1209,7 +1345,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                             <td className="font-weight-bold">{log.username}</td>
                             <td>
                               <span className={`role-badge ${log.role}`}>
-                                {log.role === 'owner' ? 'المالك' : 'محرر'}
+                                {getRoleArabicName(log.role)}
                               </span>
                             </td>
                             <td>
@@ -1237,67 +1373,139 @@ export default function Dashboard({ currentUser, onLogout }) {
               </div>
             )}
 
-            {/* 4. EDITORS MANAGEMENT TAB (Owner Only) */}
+            {/* 4. USERS MANAGEMENT TAB (Owner Only) */}
             {activeTab === 'users' && currentUser.role === 'owner' && (
               <div className="tab-pane">
                 <div className="pane-header">
-                  <h3>إدارة المحررين وصلاحيات الوصول</h3>
+                  <h3>إدارة المستخدمين وصلاحيات الوصول</h3>
                 </div>
 
                 <div className="users-tab-layout">
-                  <form onSubmit={handleAddEditor} className="content-form user-form-box">
-                    <h4>إضافة حساب محرر جديد</h4>
-                    {userError && <div className="form-error-banner"><AlertTriangle size={14} /> {userError}</div>}
-                    
-                    <div className="form-group">
-                      <label>اسم المستخدم</label>
-                      <input 
-                        type="text" 
-                        value={newUsername} 
-                        onChange={(e) => setNewUsername(e.target.value)}
-                        placeholder="أدخل اسم مستخدم فريد"
-                        className="form-control"
-                        required
-                      />
-                    </div>
+                  <div className="users-forms-column">
+                    {/* Admin Profile Form */}
+                    <form onSubmit={handleUpdateAdminProfile} className="content-form user-form-box">
+                      <h4>تعديل الحساب الشخصي (المدير)</h4>
+                      {adminError && <div className="form-error-banner"><AlertTriangle size={14} /> {adminError}</div>}
+                      
+                      <div className="form-group">
+                        <label>اسم المستخدم للمدير</label>
+                        <input 
+                          type="text" 
+                          value={adminUsername} 
+                          onChange={(e) => setAdminUsername(e.target.value)}
+                          placeholder="أدخل اسم المستخدم الجديد"
+                          className="form-control"
+                          required
+                        />
+                      </div>
 
-                    <div className="form-group">
-                      <label>كلمة المرور</label>
-                      <input 
-                        type="password" 
-                        value={newPassword} 
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="أدخل كلمة مرور قوية"
-                        className="form-control"
-                        required
-                      />
-                    </div>
+                      <div className="form-group">
+                        <label>كلمة المرور للمدير</label>
+                        <input 
+                          type="password" 
+                          value={adminPassword} 
+                          onChange={(e) => setAdminPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور الجديدة"
+                          className="form-control"
+                          required
+                        />
+                      </div>
 
-                    <button type="submit" className="btn-primary full-width">
-                      <UserPlus size={16} />
-                      إنشاء حساب محرر
-                    </button>
-                  </form>
+                      <button type="submit" className="btn-primary full-width">
+                        <Save size={16} />
+                        حفظ بيانات المدير الشخصية
+                      </button>
+                    </form>
+
+                    {/* Manage Users Form */}
+                    <form onSubmit={handleSaveUser} className="content-form user-form-box">
+                      <h4>{editingUser ? 'تعديل حساب مستخدم' : 'إضافة حساب مستخدم جديد'}</h4>
+                      {userError && <div className="form-error-banner"><AlertTriangle size={14} /> {userError}</div>}
+                      
+                      <div className="form-group">
+                        <label>اسم المستخدم</label>
+                        <input 
+                          type="text" 
+                          value={newUsername} 
+                          onChange={(e) => setNewUsername(e.target.value)}
+                          placeholder="أدخل اسم مستخدم فريد"
+                          className="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>كلمة المرور</label>
+                        <input 
+                          type="password" 
+                          value={newPassword} 
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="أدخل كلمة المرور"
+                          className="form-control"
+                          required
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label>صلاحية الحساب (الدور)</label>
+                        <select 
+                          value={userRole} 
+                          onChange={(e) => setUserRole(e.target.value)}
+                          className="form-control"
+                        >
+                          <option value="editor">محرر (صلاحيات كاملة عدا الحسابات والإعدادات)</option>
+                          <option value="specialist">المختص (إضافة وتعديل البث والشريط + سجل العمليات)</option>
+                          <option value="hr">الموارد البشرية (إضافة وتعديل وحذف البث والشريط فقط)</option>
+                        </select>
+                      </div>
+
+                      <div className="form-buttons-row" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                        <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+                          {editingUser ? <Save size={16} /> : <UserPlus size={16} />}
+                          {editingUser ? 'تحديث الحساب' : 'إنشاء الحساب'}
+                        </button>
+                        {editingUser && (
+                          <button type="button" onClick={handleCancelEditUser} className="btn-secondary">
+                            إلغاء
+                          </button>
+                        )}
+                      </div>
+                    </form>
+                  </div>
 
                   <div className="users-list-box">
-                    <h4>قائمة المحررين المسجلين ({users.filter(u => u.role === 'editor').length})</h4>
+                    <h4>قائمة الحسابات المسجلة ({users.filter(u => u.username !== currentUser.username).length})</h4>
                     <ul className="users-list-ul">
-                      {users.filter(u => u.role === 'editor').length === 0 ? (
-                        <li className="no-users">لا يوجد محررون مسجلون حالياً.</li>
+                      {users.filter(u => u.username !== currentUser.username).length === 0 ? (
+                        <li className="no-users">لا يوجد مستخدمون مسجلون حالياً.</li>
                       ) : (
-                        users.filter(u => u.role === 'editor').map(user => (
+                        users.filter(u => u.username !== currentUser.username).map(user => (
                           <li key={user.username} className="user-list-item">
                             <div className="user-item-meta">
-                              <span className="user-item-name">{user.username}</span>
+                              <div className="user-name-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                <span className="user-item-name" style={{ fontWeight: '700' }}>{user.username}</span>
+                                <span className={`user-role-badge ${user.role}`}>
+                                  {getRoleArabicName(user.role)}
+                                </span>
+                              </div>
                               <span className="user-item-date">أنشئ بواسطة {user.createdBy} في {new Date(user.createdAt).toLocaleDateString('ar-SA')}</span>
                             </div>
-                            <button 
-                              onClick={() => handleDeleteUser(user.username)}
-                              className="btn-delete-user"
-                              title="حذف الحساب"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                            <div className="user-actions" style={{ display: 'flex', gap: '6px' }}>
+                              <button 
+                                onClick={() => handleStartEditUser(user)}
+                                className="btn-edit-user"
+                                title="تعديل الحساب"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteUser(user.username)}
+                                className="btn-delete-user"
+                                title="حذف الحساب"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </li>
                         ))
                       )}
