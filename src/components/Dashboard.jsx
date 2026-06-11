@@ -615,6 +615,8 @@ export default function Dashboard({ currentUser, onLogout }) {
     setNewPassword(user.password || '');
     setUserRole(user.role || 'editor');
     setUserError('');
+    // Scroll to top/form smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancelEditUser = () => {
@@ -1536,6 +1538,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                             </div>
                             <div className="user-actions" style={{ display: 'flex', gap: '6px' }}>
                               <button 
+                                type="button"
                                 onClick={() => handleStartEditUser(user)}
                                 className="btn-edit-user"
                                 title="تعديل الحساب"
@@ -1543,6 +1546,7 @@ export default function Dashboard({ currentUser, onLogout }) {
                                 <Edit2 size={16} />
                               </button>
                               <button 
+                                type="button"
                                 onClick={() => handleDeleteUser(user.username)}
                                 className="btn-delete-user"
                                 title="حذف الحساب"
