@@ -136,6 +136,10 @@ export default function Dashboard({ currentUser, onLogout }) {
   const [previewHeight, setPreviewHeight] = useState(180);
   const previewWrapperRef = useRef(null);
 
+  // Header settings dropdown state & ref
+  const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
+  const settingsDropdownRef = useRef(null);
+
   const updatePreviewScale = () => {
     if (!previewWrapperRef.current) return;
     const wrapperWidth = previewWrapperRef.current.offsetWidth || 320;
@@ -173,6 +177,18 @@ export default function Dashboard({ currentUser, onLogout }) {
 
     return () => {
       unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsDropdownRef.current && !settingsDropdownRef.current.contains(event.target)) {
+        setSettingsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -788,6 +804,43 @@ export default function Dashboard({ currentUser, onLogout }) {
             </div>
           </div>
           
+          {/* Settings & Admin Dropdown (Gear Button) */}
+          {currentUser.role === 'owner' && (
+            <div className="header-settings-dropdown-container" ref={settingsDropdownRef}>
+              <button 
+                onClick={() => setSettingsDropdownOpen(!settingsDropdownOpen)} 
+                className={`btn-header-settings ${settingsDropdownOpen ? 'active' : ''}`}
+                title="الإعدادات والإدارة"
+              >
+                <Settings size={18} />
+              </button>
+              {settingsDropdownOpen && (
+                <div className="header-settings-dropdown glass-card">
+                  <button 
+                    onClick={() => {
+                      setActiveTab('users');
+                      setSettingsDropdownOpen(false);
+                    }}
+                    className={activeTab === 'users' ? 'dropdown-item active' : 'dropdown-item'}
+                  >
+                    <Users size={16} />
+                    <span>إدارة المستخدمين</span>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setActiveTab('settings');
+                      setSettingsDropdownOpen(false);
+                    }}
+                    className={activeTab === 'settings' ? 'dropdown-item active' : 'dropdown-item'}
+                  >
+                    <Settings size={16} />
+                    <span>الإعدادات العامة</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          
           <button onClick={onLogout} className="btn-logout" title="تسجيل الخروج">
             <LogOut size={18} />
             <span>خروج</span>
@@ -928,25 +981,7 @@ export default function Dashboard({ currentUser, onLogout }) {
               </button>
             )}
 
-            {currentUser.role === 'owner' && (
-              <button 
-                className={activeTab === 'users' ? 'tab-active' : ''} 
-                onClick={() => setActiveTab('users')}
-              >
-                <Users size={16} />
-                إدارة المستخدمين
-              </button>
-            )}
 
-            {currentUser.role === 'owner' && (
-              <button 
-                className={activeTab === 'settings' ? 'tab-active' : ''} 
-                onClick={() => setActiveTab('settings')}
-              >
-                <Settings size={16} />
-                الإعدادات العامة
-              </button>
-            )}
           </nav>
 
           {/* Tab Content Panel */}
